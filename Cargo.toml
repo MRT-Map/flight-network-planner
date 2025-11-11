@@ -1,17 +1,17 @@
 [package]
 name = "flight-network-planner"
-version = "1.2.6"
+version = "1.2.7"
 edition = "2024"
 description = "Minecart Rapid Transit Flight Network Planner for airlines"
-authors = ["7d <61975820+iiiii7d@users.noreply.github.com>"]
+authors = ["MRT Mapping Services", "7d <61975820+iiiii7d@users.noreply.github.com>"]
 license = "GPL-3.0-only"
 readme = "README.md"
 keywords = [
-  "mrt",
+  "mrt", "mrt-map", "mrt-mapping-services"
 ]
 categories = ["games"]
-homepage = "https://github.com/mrt-aurora-air/flight-network-planner"
-repository = "https://github.com/mrt-aurora-air/flight-network-planner"
+homepage = "https://github.com/mrt-map/flight-network-planner"
+repository = "https://github.com/mrt-map/flight-network-planner"
 rust-version = "1.89"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
