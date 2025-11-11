@@ -28,7 +28,7 @@ clap_complete_command = { version = "=0.6.1", features = ["carapace", "fig"] }
 anyhow = { version = "=1.0.100", features = ["backtrace"] }
 itertools = "=0.14.0"
 regex = "=1.12.2"
-smol_str = { version = "=0.3.2", features = ["serde"] }
+smol_str = { version = "=0.3.4", features = ["serde"] }
 
 gatelogue-types = { version = "2.0.4", features = ["ureq_get"] }
 counter = "=0.7.0"
