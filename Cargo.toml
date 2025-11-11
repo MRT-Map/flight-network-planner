@@ -31,7 +31,7 @@ regex = "=1.11.1"
 smol_str = { version = "=0.3.2", features = ["serde"] }
 
 gatelogue-types = { version = "2.0.4", features = ["ureq_get"] }
-counter = "=0.6.0"
+counter = "=0.7.0"
 
 [profile.release]
 opt-level = 3
