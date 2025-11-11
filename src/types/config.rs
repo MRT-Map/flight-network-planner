@@ -1,13 +1,13 @@
 use std::{collections::HashMap, path::PathBuf};
 
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use counter::Counter;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 
 use crate::types::{
-    gate::{Gate, PartialGate},
     AirlineName, AirportCode, FlightNumber, GateCode,
+    gate::{Gate, PartialGate},
 };
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -68,7 +68,10 @@ impl Config {
     pub fn gates(&mut self) -> Result<Vec<Gate>> {
         if self._gates.is_empty() {
             let gates = if let Some(gate_file) = &self.gate_file {
-                let gate_file = self._folder.as_ref().map_or_else(|| gate_file.to_owned(), |folder| folder.join(gate_file));
+                let gate_file = self
+                    ._folder
+                    .as_ref()
+                    .map_or_else(|| gate_file.to_owned(), |folder| folder.join(gate_file));
                 std::fs::read_to_string(gate_file)?
                     .split('\n')
                     .filter(|l| !l.trim().is_empty())

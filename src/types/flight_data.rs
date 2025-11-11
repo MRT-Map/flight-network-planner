@@ -1,11 +1,11 @@
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use gatelogue_types::{GatelogueData, World};
 use itertools::Itertools;
 use log::{debug, info, warn};
 
-use crate::types::{config::Config, AirlineName, AirportCode, SmolStr};
+use crate::types::{AirlineName, AirportCode, SmolStr, config::Config};
 
 #[expect(dead_code)]
 #[derive(Debug)]

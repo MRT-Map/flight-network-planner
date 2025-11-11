@@ -1,11 +1,11 @@
 use std::{collections::HashMap, path::PathBuf};
 
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use regex::Regex;
 
 use crate::{
-    types::{flight::Flight, flight_type::FlightType, fng::FlightNumberGenerator},
     Config,
+    types::{flight::Flight, flight_type::FlightType, fng::FlightNumberGenerator},
 };
 
 pub fn update(
@@ -50,10 +50,7 @@ pub fn update(
                     FlightType::ExistingH2H | FlightType::NonExistingH2H => &mut h2h_fng,
                     FlightType::ExistingH2N | FlightType::NonExistingH2N => h2n_fng
                         .entry(
-                            (if config
-                                .range_h2n
-                                .contains_key(&*flight.airport1.0.clone())
-                            {
+                            (if config.range_h2n.contains_key(&*flight.airport1.0.clone()) {
                                 &flight.airport1.1
                             } else {
                                 &flight.airport2.1

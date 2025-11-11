@@ -1,17 +1,16 @@
 use std::collections::HashMap;
 
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use itertools::Itertools;
 use log::{debug, info, trace};
 
 use crate::{
-    fbp,
+    FlightData, fbp,
     types::{
-        config::Config, flight::Flight, flight_type::FlightType, flight_utils::FlightUtils,
-        fng::FlightNumberGenerator, gate::Gate, AirportCode,
+        AirportCode, config::Config, flight::Flight, flight_type::FlightType,
+        flight_utils::FlightUtils, fng::FlightNumberGenerator, gate::Gate,
     },
-    utils::{for_both, for_both_permutations, AnyAllBool},
-    FlightData,
+    utils::{AnyAllBool, for_both, for_both_permutations},
 };
 
 fn sort_gates(
@@ -23,7 +22,8 @@ fn sort_gates(
     Ok(x.into_iter()
         .map(|(g1, g2, _, ty)| {
             let s = (&g1, &g2).score(config, fd)?;
-            let existed = old_plan.is_some_and(|old_plan| old_plan
+            let existed = old_plan.is_some_and(|old_plan| {
+                old_plan
                     .iter()
                     .filter(|f| {
                         (f.airport1 == (g1.airport.clone(), g1.code.clone())
@@ -31,14 +31,16 @@ fn sort_gates(
                             || (f.airport1 == (g2.airport.clone(), g2.code.clone())
                                 && f.airport2 == (g1.airport.clone(), g1.code.clone()))
                     })
-                    .count() > 0);
+                    .count()
+                    > 0
+            });
             Ok((g1, g2, s, ty, existed))
         })
         .collect::<Result<Vec<_>>>()?
         .into_iter()
         .sorted_by(|&(_, _, s1, _, existed1), &(_, _, s2, _, existed2)| {
-            let s1 = if existed1 {s1 + 1} else {s1};
-            let s2 = if existed2 {s1 + 1} else {s2};
+            let s1 = if existed1 { s1 + 1 } else { s1 };
+            let s2 = if existed2 { s1 + 1 } else { s2 };
             s1.cmp(&s2)
         })
         .map(|(g1, g2, s, ty, _)| (g1, g2, s, ty))
@@ -168,12 +170,7 @@ pub fn run(
         }) {
             trace!(
                 "Rejected ({} {}): {} {} <-> {} {} (already exists)",
-                ty,
-                g1.size,
-                g1.airport,
-                g1.code,
-                g2.airport,
-                g2.code
+                ty, g1.size, g1.airport, g1.code, g2.airport, g2.code
             );
             continue;
         }
@@ -244,7 +241,8 @@ pub fn run(
                     } else {
                         &g2
                     })
-                    .airport.clone(),
+                    .airport
+                    .clone(),
                 )
                 .or_insert_with(|| {
                     FlightNumberGenerator::new(

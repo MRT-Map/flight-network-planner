@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-use crate::types::{flight_type::FlightType, AirportCode, FlightNumber, GateCode, Size};
+use crate::types::{AirportCode, FlightNumber, GateCode, Size, flight_type::FlightType};
 
 #[derive(Debug, Clone)]
 pub struct Flight {

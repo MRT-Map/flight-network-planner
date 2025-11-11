@@ -1,6 +1,6 @@
 use crate::{
-    types::{flight_type::FlightType, gate::Gate, AirportCode},
     Config, FlightData,
+    types::{AirportCode, flight_type::FlightType, gate::Gate},
 };
 
 pub trait FlightUtils {
@@ -30,15 +30,15 @@ impl FlightUtils for (&AirportCode, &AirportCode) {
         {
             s += 20;
         }
-        if let Some(dests) = config.preferred_to.get(self.0) {
-            if dests.contains(self.1) {
-                s += 20;
-            }
+        if let Some(dests) = config.preferred_to.get(self.0)
+            && dests.contains(self.1)
+        {
+            s += 20;
         }
-        if let Some(dests) = config.preferred_to.get(self.1) {
-            if dests.contains(self.0) {
-                s += 20;
-            }
+        if let Some(dests) = config.preferred_to.get(self.1)
+            && dests.contains(self.0)
+        {
+            s += 20;
         }
 
         if flight_data.old_world_airports.contains(self.0)

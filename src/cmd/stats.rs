@@ -2,8 +2,8 @@ use anyhow::Result;
 use itertools::Itertools;
 
 use crate::{
-    types::{flight::Flight, flight_type::FlightType},
     Config,
+    types::{flight::Flight, flight_type::FlightType},
 };
 
 pub fn get_stats(res: &[Flight], config: &mut Config) -> Result<String> {
