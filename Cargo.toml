@@ -17,21 +17,21 @@ rust-version = "1.84.1"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-serde = { version = "1.0.219", features = ["derive"] }
-serde_yaml = "0.9.34"
+serde = { version = "=1.0.219", features = ["derive"] }
+serde_yaml = "=0.9.34"
 
-log = "0.4.27"
-pretty_env_logger = "0.5.0"
-clap = { version = "4.5.40", features = ["derive"] }
-clap_complete_command = { version = "0.6.1", features = ["carapace", "fig"] }
+log = "=0.4.27"
+pretty_env_logger = "=0.5.0"
+clap = { version = "=4.5.40", features = ["derive"] }
+clap_complete_command = { version = "=0.6.1", features = ["carapace", "fig"] }
 
-anyhow = { version = "1.0.98", features = ["backtrace"] }
-itertools = "0.14.0"
-regex = "1.11.1"
-smol_str = { version = "0.3.2", features = ["serde"] }
+anyhow = { version = "=1.0.98", features = ["backtrace"] }
+itertools = "=0.14.0"
+regex = "=1.11.1"
+smol_str = { version = "=0.3.2", features = ["serde"] }
 
 gatelogue-types = { version = "2.0.4", features = ["ureq_get"] }
-counter = "0.6.0"
+counter = "=0.6.0"
 
 [profile.release]
 opt-level = 3
