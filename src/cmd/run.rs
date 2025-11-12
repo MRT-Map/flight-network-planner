@@ -40,7 +40,7 @@ fn sort_gates(
         .into_iter()
         .sorted_by(|&(_, _, s1, _, existed1), &(_, _, s2, _, existed2)| {
             let s1 = if existed1 { s1 + 1 } else { s1 };
-            let s2 = if existed2 { s1 + 1 } else { s2 };
+            let s2 = if existed2 { s2 + 1 } else { s2 };
             s1.cmp(&s2)
         })
         .map(|(g1, g2, s, ty, _)| (g1, g2, s, ty))
