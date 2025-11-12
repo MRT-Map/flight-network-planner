@@ -3,6 +3,9 @@
   "extends": [
     "github>mrt-map/renovate-config"
   ],
+  "git-submodules": {
+    "enabled": true
+  },
   "packageRules": [
     {
       "matchPackageNames": ["!gatelogue-types"],
