@@ -1,6 +1,6 @@
 [package]
 name = "flight-network-planner"
-version = "1.2.7"
+version = "1.2.8"
 edition = "2024"
 description = "Minecart Rapid Transit Flight Network Planner for airlines"
 authors = ["MRT Mapping Services", "7d <61975820+iiiii7d@users.noreply.github.com>"]
