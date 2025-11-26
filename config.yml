@@ -15,7 +15,7 @@ ignored_airlines:
 # == Airports ==
 # hubs: A list of hubs for your airline. (default: all airports with at least the number of gates in hub_threshold)
 # hub_threshold: The minimum number of gates for an airport to be considered a hub, if hubs is empty
-hubs: [CIA, PCE, MWT, LAR, SEG, VDA, AIX, NPR]
+hubs: [CIA, PCE, MWT, LAR, SEG, VDA, AIX, NPR, GBE]
 hub_threshold: 5
 
 # == Flight naming scheme ==
