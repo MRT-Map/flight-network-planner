@@ -10,6 +10,10 @@
     {
       "matchPackageNames": ["!gatelogue-types"],
       "extends": [":pinAllExceptPeerDependencies"]
+    },
+    {
+      "matchManagers": ["git-submodules"],
+      "automerge": true
     }
   ]
 }
