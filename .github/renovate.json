@@ -14,7 +14,8 @@
     {
       "matchManagers": ["git-submodules"],
       "automerge": true,
-      "automergeType": "branch"
+      "automergeType": "branch",
+      "ignoreTests": true
     }
   ]
 }
