@@ -13,7 +13,8 @@
     },
     {
       "matchManagers": ["git-submodules"],
-      "automerge": true
+      "automerge": true,
+      "automergeType": "branch"
     }
   ]
 }
