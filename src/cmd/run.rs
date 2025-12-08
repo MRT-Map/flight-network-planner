@@ -8,7 +8,7 @@ use crate::{
     FlightData, fbp,
     types::{
         AirportCode, config::Config, flight::Flight, flight_type::FlightType,
-        flight_utils::FlightUtils, fng::FlightNumberGenerator, gate::Gate,
+        fng::FlightNumberGenerator, gate::Gate,
     },
     utils::{AnyAllBool, for_both, for_both_permutations},
 };
@@ -21,7 +21,7 @@ fn sort_gates(
 ) -> Result<Vec<(Gate, Gate, i8, FlightType)>> {
     Ok(x.into_iter()
         .map(|(g1, g2, _, ty)| {
-            let s = (&g1, &g2).score(config, fd)?;
+            let s = config.gates_score(fd, &g1, &g2)?;
             let existed = old_plan.is_some_and(|old_plan| {
                 old_plan
                     .iter()
@@ -95,7 +95,7 @@ pub fn run(
             }
         ))
         .map(|(g1, g2)| {
-            let ty = (&g1, &g2).get_flight_type(config, fd)?;
+            let ty = config.gates_flight_type(fd, &g1, &g2)?;
             Ok((g1, g2, 0i8, ty))
         })
         .filter_ok(|(g1, g2, _, ty)| {
@@ -208,7 +208,7 @@ pub fn run(
                 .get(g)
                 .unwrap_or(&vec![])
                 .iter()
-                .filter(|d| (&g.airport, *d).get_flight_type(config, fd).unwrap() == ty)
+                .filter(|d| config.airports_flight_type(fd, &g.airport, *d).unwrap() == ty)
                 .count()
                 >= *max as usize
             {
