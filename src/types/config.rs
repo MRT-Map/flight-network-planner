@@ -7,6 +7,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::types::{
     AirlineName, AirportCode, FlightNumber, GateCode,
+    flight_data::FlightData,
+    flight_type::FlightType,
     gate::{Gate, PartialGate},
 };
 
@@ -110,5 +112,107 @@ impl Config {
         } else {
             self.ignored_airlines.clone()
         }
+    }
+
+    pub fn is_valid_flight(
+        &mut self,
+        fd: &FlightData,
+        g1: &Gate,
+        g2: &Gate,
+    ) -> anyhow::Result<bool> {
+        if g1.airport == g2.airport || g1.size != g2.size {
+            return Ok(false);
+        }
+
+        if self
+            .restricted_between
+            .iter()
+            .any(|re| re.contains(&g1.airport) && re.contains(&g2.airport))
+        {
+            return Ok(false);
+        }
+
+        if self
+            .restricted_to
+            .get(&*g1.airport)
+            .is_some_and(|a| a.contains(&g2.airport))
+            || self
+                .restricted_to
+                .get(&*g2.airport)
+                .is_some_and(|a| a.contains(&g1.airport))
+        {
+            return Ok(false);
+        }
+
+        if self
+            .gate_allowed_dests
+            .get(&*g1.airport)
+            .is_some_and(|gates| {
+                gates
+                    .get(&*g1.code)
+                    .is_some_and(|gate| !gate.contains(&g2.airport))
+            })
+            || self
+                .gate_allowed_dests
+                .get(&*g2.airport)
+                .is_some_and(|gates| {
+                    gates
+                        .get(&*g2.code)
+                        .is_some_and(|gate| !gate.contains(&g1.airport))
+                })
+        {
+            return Ok(false);
+        }
+
+        if self
+            .gate_denied_dests
+            .get(&*g1.airport)
+            .is_some_and(|gates| {
+                gates
+                    .get(&*g1.code)
+                    .is_some_and(|gate| gate.contains(&g2.airport))
+            })
+            || self
+                .gate_denied_dests
+                .get(&*g2.airport)
+                .is_some_and(|gates| {
+                    gates
+                        .get(&*g2.code)
+                        .is_some_and(|gate| gate.contains(&g1.airport))
+                })
+        {
+            return Ok(false);
+        }
+
+        if self
+            .preferred_between
+            .iter()
+            .any(|a| a.contains(&g1.airport) && a.contains(&g2.airport))
+        {
+            return Ok(true);
+        }
+
+        if self
+            .preferred_to
+            .get(&g1.airport)
+            .is_some_and(|a| a.contains(&g2.airport))
+            || self
+                .preferred_to
+                .get(&g2.airport)
+                .is_some_and(|a| a.contains(&g1.airport))
+        {
+            return Ok(true);
+        }
+
+        if self.no_dupes.contains(&g1.airport) || self.no_dupes.contains(&g2.airport) {
+            return Ok(![
+                FlightType::ExistingH2H,
+                FlightType::ExistingH2N,
+                FlightType::ExistingN2N,
+            ]
+            .contains(&self.gates_flight_type(fd, g1, g2)?));
+        }
+
+        Ok(true)
     }
 }

@@ -14,14 +14,15 @@ use crate::{
 };
 
 fn sort_gates(
-    x: Vec<(Gate, Gate, i8, FlightType)>,
+    x: Vec<(Gate, Gate)>,
     config: &mut Config,
     fd: &FlightData,
     old_plan: Option<&Vec<Flight>>,
 ) -> Result<Vec<(Gate, Gate, i8, FlightType)>> {
     Ok(x.into_iter()
-        .map(|(g1, g2, _, ty)| {
+        .map(|(g1, g2)| {
             let s = config.gates_score(fd, &g1, &g2)?;
+            let ty = config.gates_flight_type(fd, &g1, &g2)?;
             let existed = old_plan.is_some_and(|old_plan| {
                 old_plan
                     .iter()
@@ -54,73 +55,16 @@ pub fn run(
     old_plan: Option<&Vec<Flight>>,
 ) -> Result<Vec<Flight>> {
     let hubs = config.hubs()?;
-    let restricted_between = config.restricted_between.clone();
-    let restricted_to = config.restricted_to.clone();
-    let gate_allowed_dests = config.gate_allowed_dests.clone();
-    let gate_denied_dests = config.gate_denied_dests.clone();
-    let preferred_between = config.preferred_between.clone();
-    let preferred_to = config.preferred_to.clone();
-    let no_dupes = config.no_dupes.clone();
-    let mut possible_flights = config
+    let possible_flights = config
         .gates()?
         .into_iter()
         .tuple_combinations::<(_, _)>()
-        .filter(|(g1, g2)| {
-            !restricted_between.iter().any(|re| {
-                vec![g1.airport.clone(), g2.airport.clone()]
-                    .into_iter()
-                    .all(|a| re.contains(&a))
-            })
+        .map(|(g1, g2)| match config.is_valid_flight(fd, &g1, &g2) {
+            Ok(true) => Ok(Some((g1, g2))),
+            Ok(false) => Ok(None),
+            Err(e) => Err(e),
         })
-        .filter(|(g1, g2)| g1.airport != g2.airport && g1.size == g2.size)
-        .filter(fbp!(
-            filter | g1: &Gate,
-            g2: &Gate | {
-                !restricted_to
-                    .get(&*g1.airport)
-                    .unwrap_or(&vec![])
-                    .contains(&g2.airport)
-            }
-        ))
-        .filter(fbp!(
-            filter | g1: &Gate,
-            g2: &Gate | {
-                gate_allowed_dests.get(&*g1.airport).is_none_or(|gates| gates.get(&*g1.code).is_none_or(|gate| gate.contains(&g2.airport)))
-            }
-        ))
-        .filter(fbp!(
-            filter | g1: &Gate,
-            g2: &Gate | {
-                gate_denied_dests.get(&*g1.airport).is_none_or(|gates| gates.get(&*g1.code).is_none_or(|gate| !gate.contains(&g2.airport)))
-            }
-        ))
-        .map(|(g1, g2)| {
-            let ty = config.gates_flight_type(fd, &g1, &g2)?;
-            Ok((g1, g2, 0i8, ty))
-        })
-        .filter_ok(|(g1, g2, _, ty)| {
-            if preferred_between
-                .iter()
-                .any(|a| a.contains(&g1.airport) && a.contains(&g2.airport))
-                || preferred_to
-                    .get(&g1.airport)
-                    .is_some_and(|a| a.contains(&g2.airport))
-                || preferred_to
-                    .get(&g2.airport)
-                    .is_some_and(|a| a.contains(&g1.airport))
-            {
-                true
-            } else if no_dupes.contains(&g1.airport) || no_dupes.contains(&g2.airport) {
-                ![
-                    FlightType::ExistingH2H,
-                    FlightType::ExistingH2N,
-                    FlightType::ExistingN2N,
-                ]
-                .contains(ty)
-            } else {
-                true
-            }
-        })
+        .filter_map_ok(|a| a)
         .collect::<Result<Vec<_>>>()?;
 
     let mut h2h_fng = FlightNumberGenerator::new(config.range_h2h.clone());
@@ -130,9 +74,9 @@ pub fn run(
     let mut destinations: HashMap<Gate, Vec<AirportCode>> = HashMap::new();
     let mut flights: Vec<Flight> = vec![];
 
-    possible_flights = sort_gates(possible_flights, config, fd, old_plan)?;
+    let mut sorted_flights = sort_gates(possible_flights, config, fd, old_plan)?;
 
-    while let Some((mut g1, mut g2, mut s, ty)) = possible_flights.pop() {
+    while let Some((mut g1, mut g2, mut s, ty)) = sorted_flights.pop() {
         if hubs.contains(&g2.airport) && !hubs.contains(&g1.airport) {
             (g1, g2) = (g2.clone(), g1.clone());
         }
