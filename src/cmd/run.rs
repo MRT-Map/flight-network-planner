@@ -5,7 +5,7 @@ use itertools::Itertools;
 use log::{debug, info, trace};
 
 use crate::{
-    FlightData, fbp,
+    FlightData,
     types::{
         AirportCode, config::Config, flight::Flight, flight_type::FlightType,
         fng::FlightNumberGenerator, gate::Gate,
@@ -81,7 +81,7 @@ pub fn run(
             (g1, g2) = (g2.clone(), g1.clone());
         }
         if for_both(&g1, &g2, |g| {
-            destinations.get(g).unwrap_or(&vec![]).len()
+            destinations.get(g).map_or(0, Vec::len)
                 >= *config
                     .max_dests_per_gate
                     .get(&g.airport)
@@ -91,8 +91,8 @@ pub fn run(
         {
             continue;
         }
-        s -= (destinations.get(&g1).unwrap_or(&vec![]).len() as i8)
-            .min(destinations.get(&g2).unwrap_or(&vec![]).len() as i8);
+        s -= (destinations.get(&g1).map_or(0, Vec::len) as i8)
+            .min(destinations.get(&g2).map_or(0, Vec::len) as i8);
         if s < 0 {
             continue;
         }
@@ -132,7 +132,7 @@ pub fn run(
             &(&g1, &g1_hardmax),
             &(&g2, &g2_hardmax),
             |(g, hardmax), (og, _)| {
-                if destinations.get(g).unwrap_or(&vec![]).len() >= **hardmax {
+                if destinations.get(g).map_or(0, Vec::len) >= **hardmax {
                     debug!(
                         "Rejected ({} {}): {} {} <-> {} {} ({2} hit max limit of {})",
                         ty, og.size, g.airport, g.code, og.airport, og.code, hardmax
@@ -150,10 +150,10 @@ pub fn run(
         if for_both_permutations(&(&g1, max1), &(&g2, max2), |(g, max), (og, _)| {
             if destinations
                 .get(g)
-                .unwrap_or(&vec![])
+                .map_or(0, |ds| ds
                 .iter()
-                .filter(|d| config.airports_flight_type(fd, &g.airport, *d).unwrap() == ty)
-                .count()
+                .filter(|d| config.airports_flight_type(fd, &g.airport, d).unwrap() == ty)
+                .count())
                 >= *max as usize
             {
                 debug!(
