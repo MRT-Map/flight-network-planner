@@ -76,7 +76,7 @@ pub fn run(
 
     let mut sorted_flights = sort_gates(possible_flights, config, fd, old_plan)?;
 
-    while let Some((mut g1, mut g2, mut s, ty)) = sorted_flights.pop() {
+    for (mut g1, mut g2, mut s, ty) in sorted_flights {
         if hubs.contains(&g2.airport) && !hubs.contains(&g1.airport) {
             (g1, g2) = (g2.clone(), g1.clone());
         }
@@ -148,13 +148,11 @@ pub fn run(
             continue;
         }
         if for_both_permutations(&(&g1, max1), &(&g2, max2), |(g, max), (og, _)| {
-            if destinations
-                .get(g)
-                .map_or(0, |ds| ds
-                .iter()
-                .filter(|d| config.airports_flight_type(fd, &g.airport, d).unwrap() == ty)
-                .count())
-                >= *max as usize
+            if destinations.get(g).map_or(0, |ds| {
+                ds.iter()
+                    .filter(|d| config.airports_flight_type(fd, &g.airport, d).unwrap() == ty)
+                    .count()
+            }) >= *max as usize
             {
                 debug!(
                     "Rejected ({} {}): {} {} <-> {} {} ({2} hit max type limit of {})",

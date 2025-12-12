@@ -12,7 +12,7 @@ use types::config::Config;
 
 use crate::{
     cmd::{run, stats, update},
-    types::flight_data::FlightData,
+    types::{flight::Flight, flight_data::FlightData},
 };
 
 #[derive(Parser)]
@@ -70,7 +70,7 @@ fn main() -> Result<()> {
             let mut fd = FlightData::from_gatelogue()?;
             fd.preprocess(&mut config)?;
             let old_plan = if let Some(old) = &run.old {
-                Some(update::load_from_out(old.to_owned())?)
+                Some(Flight::vec_from_str(&std::fs::read_to_string(old)?)?)
             } else {
                 None
             };
@@ -78,31 +78,26 @@ fn main() -> Result<()> {
             if run.stats {
                 eprintln!("\n{}", stats::get_stats(&result, &mut config)?);
             }
-            if let Some(old) = &run.old {
-                result = update::update(old.to_owned(), result, &config)?;
+            if let Some(old_plan) = &old_plan {
+                result = update::update(old_plan, result, &config)?;
             }
-            let res = result
-                .into_iter()
-                .sorted_by_key(|f| f.number)
-                .map(|f| f.to_string())
-                .collect::<Vec<_>>()
-                .join("\n");
+            let result_string = Flight::vec_to_string(&result);
             if run.replace {
                 if let Some(old) = &run.old {
-                    std::fs::write(old, res)?;
+                    std::fs::write(old, result_string)?;
                     println!("Overwritten {}", old.display());
                 } else {
-                    println!("{res}");
+                    println!("{result_string}");
                 }
             } else {
-                println!("{res}");
+                println!("{result_string}");
             }
         }
         Command::GetConfig => {
             println!("{}", include_str!("../data/default_config.yml"));
         }
         Command::GateKeys(gate_keys) => {
-            let flights = update::load_from_out(gate_keys.out_file)?;
+            let flights = Flight::vec_from_str(&std::fs::read_to_string(&gate_keys.out_file)?)?;
             let mut map: HashMap<_, Vec<_>> = HashMap::new();
             for flight in flights {
                 map.entry(flight.airport1)
