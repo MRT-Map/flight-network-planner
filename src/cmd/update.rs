@@ -1,16 +1,11 @@
 use std::collections::HashMap;
 
-
 use crate::{
     Config,
     types::{flight::Flight, flight_type::FlightType, fng::FlightNumberGenerator},
 };
 
-pub fn update(
-    old_plan: &[Flight],
-    generated_plan: Vec<Flight>,
-    config: &Config,
-) -> Vec<Flight> {
+pub fn update(old_plan: &[Flight], generated_plan: Vec<Flight>, config: &Config) -> Vec<Flight> {
     let mut new_plan = vec![];
     let mut used_flight_numbers = vec![];
     let mut flight_number_mapping = HashMap::new();
