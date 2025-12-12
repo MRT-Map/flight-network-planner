@@ -79,7 +79,7 @@ fn main() -> Result<()> {
                 eprintln!("\n{}", stats::get_stats(&result, &mut config)?);
             }
             if let Some(old_plan) = &old_plan {
-                result = update::update(old_plan, result, &config)?;
+                result = update::update(old_plan, result, &config);
             }
             let result_string = Flight::vec_to_string(&result);
             if run.replace {

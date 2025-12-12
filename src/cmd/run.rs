@@ -74,7 +74,7 @@ pub fn run(
     let mut destinations: HashMap<Gate, Vec<AirportCode>> = HashMap::new();
     let mut flights: Vec<Flight> = vec![];
 
-    let mut sorted_flights = sort_gates(possible_flights, config, fd, old_plan)?;
+    let sorted_flights = sort_gates(possible_flights, config, fd, old_plan)?;
 
     for (mut g1, mut g2, mut s, ty) in sorted_flights {
         if hubs.contains(&g2.airport) && !hubs.contains(&g1.airport) {

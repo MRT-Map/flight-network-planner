@@ -37,7 +37,7 @@ impl Flight {
     pub fn vec_to_string(vec: &[Self]) -> String {
         vec.iter()
             .sorted_by_key(|f| f.number)
-            .map(|f| f.to_string())
+            .map(std::string::ToString::to_string)
             .collect::<Vec<_>>()
             .join("\n")
     }
@@ -49,7 +49,7 @@ impl Flight {
                 Some({
                     let re = regex.captures(l)?;
 
-                    Flight {
+                    Self {
                         number: re.get(1)?.as_str().parse::<u16>().unwrap(),
                         airport1: (re.get(3)?.as_str().into(), re.get(4)?.as_str().into()),
                         airport2: (re.get(5)?.as_str().into(), re.get(6)?.as_str().into()),

@@ -1,7 +1,5 @@
-use std::{collections::HashMap, path::Path};
+use std::collections::HashMap;
 
-use anyhow::{Result, anyhow};
-use regex::Regex;
 
 use crate::{
     Config,
@@ -12,7 +10,7 @@ pub fn update(
     old_plan: &[Flight],
     generated_plan: Vec<Flight>,
     config: &Config,
-) -> Result<Vec<Flight>> {
+) -> Vec<Flight> {
     let mut new_plan = vec![];
     let mut used_flight_numbers = vec![];
     let mut flight_number_mapping = HashMap::new();
@@ -87,5 +85,5 @@ pub fn update(
             ty: flight.ty,
         });
     }
-    Ok(new_plan)
+    new_plan
 }
