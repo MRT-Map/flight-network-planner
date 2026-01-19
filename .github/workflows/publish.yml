@@ -78,7 +78,7 @@ jobs:
         version: 1.0
 
     - shell: bash
-      run: cargo build --target=${{ matrix.target }} --release
+      run: cargo --locked build --target=${{ matrix.target }} --release
       
     - if: matrix.kind == 'macos'
       shell: bash
