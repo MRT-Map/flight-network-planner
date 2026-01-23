@@ -1,5 +1,7 @@
 
 on:
+  push:
+    branches: ["**/renovate"]
   workflow_dispatch:
 
 jobs:
@@ -105,6 +107,7 @@ jobs:
   github-release:
     runs-on: ubuntu-latest
     needs: [build, version]
+    if: github.event_name != 'pull_request' && !startsWith(github.ref_name, 'renovate/')
     permissions:
       contents: write
 
@@ -146,6 +149,7 @@ jobs:
   crates-io:
     runs-on: ubuntu-latest
     needs: build
+    if: github.event_name != 'pull_request' && !startsWith(github.ref_name, 'renovate/')
     environment: crates
     permissions:
       id-token: write
