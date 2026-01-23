@@ -1,7 +1,7 @@
 
 on:
   push:
-    branches: ["**/renovate"]
+    branches: ["renovate/**"]
   workflow_dispatch:
 
 jobs:
