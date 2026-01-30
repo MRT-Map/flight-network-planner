@@ -78,19 +78,14 @@ impl FlightData {
             timestamp: SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs(),
         })
     }
-    pub fn preprocess(&mut self, config: &mut Config) -> Result<()> {
+    pub fn preprocess(&mut self, config: &Config) -> Result<()> {
         info!("Preprocessing flight data");
         debug!("Throwing out ignored airlines");
         self.flights
             .retain(|f| !config.ignored_airlines().contains(&f.airline));
 
         debug!("Checking airport codes");
-        config
-            .gates()?
-            .iter()
-            .map(|g| g.airport.clone())
-            .sorted()
-            .dedup()
+        config.airports()
             .filter(|a| {
                 !self.new_world_airports.contains(a) && !self.old_world_airports.contains(a)
             })
@@ -98,10 +93,9 @@ impl FlightData {
                 warn!("Airport `{a}` doesn't exist");
             });
 
-        let airports = config.airports()?;
+        let airports = config.airports().collect::<Vec<_>>();
         config
-            .hubs()?
-            .into_iter()
+            .hubs()
             .filter(|a| !airports.iter().contains(a))
             .for_each(|a| {
                 warn!("Airport `{a}` has no gates but is stated as a hub");
@@ -109,14 +103,13 @@ impl FlightData {
 
         debug!("Ensuring flight number allocations for hubs");
         let fnr_not_specified = config
-            .hubs()?
-            .into_iter()
+            .hubs()
             .filter(|a| !config.range_h2n.keys().contains(a))
             .collect::<Vec<_>>();
         if !fnr_not_specified.is_empty() {
             return Err(anyhow!(
                 "Flight number range not specified for: {}",
-                fnr_not_specified.join(", ")
+                fnr_not_specified.into_iter().join(", ")
             ));
         }
         Ok(())

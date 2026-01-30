@@ -5,11 +5,11 @@ use crate::{
 
 impl Config {
     pub fn airports_score(
-        &mut self,
+        &self,
         flight_data: &FlightData,
         a1: &AirportCode,
         a2: &AirportCode,
-    ) -> anyhow::Result<i8> {
+    ) -> i8 {
         let mut s = 0i8;
 
         s -= flight_data.num_flights(a1, a2) as i8 - 1;
@@ -17,7 +17,7 @@ impl Config {
             s += 1;
         }
 
-        s += self.airports_flight_type(flight_data, a1, a2)?.score();
+        s += self.airports_flight_type(flight_data, a1, a2).score();
 
         if self
             .preferred_between
@@ -43,15 +43,15 @@ impl Config {
             s += 3;
         }
 
-        Ok(s)
+        s
     }
     pub fn gates_score(
-        &mut self,
+        &self,
         flight_data: &FlightData,
         g1: &Gate,
         g2: &Gate,
-    ) -> anyhow::Result<i8> {
-        let mut s = self.airports_score(flight_data, &g1.airport, &g2.airport)?;
+    ) -> i8 {
+        let mut s = self.airports_score(flight_data, &g1.airport, &g2.airport);
         if &*g1.size != "S" {
             s += 2;
         }
@@ -59,7 +59,7 @@ impl Config {
             s += 1;
         }
 
-        Ok(s)
+        s
     }
 }
 

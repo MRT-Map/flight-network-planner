@@ -3,6 +3,7 @@ use std::collections::HashMap;
 use anyhow::{Result, anyhow};
 use itertools::Itertools;
 use log::{debug, info, trace};
+use rayon::prelude::*;
 
 use crate::{
     FlightData,
@@ -13,16 +14,32 @@ use crate::{
     utils::{AnyAllBool, for_both, for_both_permutations},
 };
 
-fn sort_gates(
-    x: Vec<(Gate, Gate)>,
-    config: &mut Config,
+
+#[expect(clippy::too_many_lines)]
+pub fn run(
+    config: &Config,
     fd: &FlightData,
     old_plan: Option<&Vec<Flight>>,
-) -> Result<Vec<(Gate, Gate, i8, FlightType)>> {
-    Ok(x.into_iter()
+) -> Result<Vec<Flight>> {
+    let hubs = config.hubs().collect::<Vec<_>>();
+    let possible_flights = config
+        .gates
+        .iter()
+        .tuple_combinations::<(_, _)>()
+        .par_bridge()
+        .filter(|(g1, g2)| config.is_valid_flight(fd, g1, g2));
+
+    let mut h2h_fng = FlightNumberGenerator::new(config.range_h2h.clone());
+    let mut h2n_fng = HashMap::new();
+    let mut n2n_fng = FlightNumberGenerator::new(config.range_n2n.clone());
+
+    let mut destinations: HashMap<&Gate, Vec<AirportCode>> = HashMap::new();
+    let mut flights: Vec<Flight> = vec![];
+
+    let sorted_flights = possible_flights
         .map(|(g1, g2)| {
-            let s = config.gates_score(fd, &g1, &g2)?;
-            let ty = config.gates_flight_type(fd, &g1, &g2)?;
+            let s = config.gates_score(fd, g1, g2);
+            let ty = config.gates_flight_type(fd, g1, g2);
             let existed = old_plan.is_some_and(|old_plan| {
                 old_plan
                     .iter()
@@ -35,50 +52,20 @@ fn sort_gates(
                     .count()
                     > 0
             });
-            Ok((g1, g2, s, ty, existed))
+            (g1, g2, s, ty, existed)
         })
-        .collect::<Result<Vec<_>>>()?
-        .into_iter()
+        .collect::<Vec<_>>().into_iter()
         .sorted_by(|&(_, _, s1, _, existed1), &(_, _, s2, _, existed2)| {
             let s1 = if existed1 { s1 + 1 } else { s1 };
             let s2 = if existed2 { s2 + 1 } else { s2 };
             s1.cmp(&s2)
         })
         .map(|(g1, g2, s, ty, _)| (g1, g2, s, ty))
-        .collect::<Vec<_>>())
-}
-
-#[expect(clippy::too_many_lines)]
-pub fn run(
-    config: &mut Config,
-    fd: &FlightData,
-    old_plan: Option<&Vec<Flight>>,
-) -> Result<Vec<Flight>> {
-    let hubs = config.hubs()?;
-    let possible_flights = config
-        .gates()?
-        .into_iter()
-        .tuple_combinations::<(_, _)>()
-        .map(|(g1, g2)| match config.is_valid_flight(fd, &g1, &g2) {
-            Ok(true) => Ok(Some((g1, g2))),
-            Ok(false) => Ok(None),
-            Err(e) => Err(e),
-        })
-        .filter_map_ok(|a| a)
-        .collect::<Result<Vec<_>>>()?;
-
-    let mut h2h_fng = FlightNumberGenerator::new(config.range_h2h.clone());
-    let mut h2n_fng = HashMap::new();
-    let mut n2n_fng = FlightNumberGenerator::new(config.range_n2n.clone());
-
-    let mut destinations: HashMap<Gate, Vec<AirportCode>> = HashMap::new();
-    let mut flights: Vec<Flight> = vec![];
-
-    let sorted_flights = sort_gates(possible_flights, config, fd, old_plan)?;
+        .collect::<Vec<_>>();
 
     for (mut g1, mut g2, mut s, ty) in sorted_flights {
-        if hubs.contains(&g2.airport) && !hubs.contains(&g1.airport) {
-            (g1, g2) = (g2.clone(), g1.clone());
+        if hubs.contains(&&g2.airport) && !hubs.contains(&&g1.airport) {
+            (g1, g2) = (g2, g1);
         }
         if for_both(&g1, &g2, |g| {
             destinations.get(g).map_or(0, Vec::len)
@@ -99,7 +86,7 @@ pub fn run(
         let (max1, max2) = for_both(&g1, &g2, |g| match ty {
             FlightType::ExistingH2H | FlightType::NonExistingH2H => config.max_h2h,
             FlightType::ExistingH2N | FlightType::NonExistingH2N => {
-                if hubs.contains(&g.airport) {
+                if hubs.contains(&&g.airport) {
                     config.max_h2n_hub
                 } else {
                     config.max_h2n_nonhub
@@ -119,18 +106,18 @@ pub fn run(
             continue;
         }
 
-        let (g1_hardmax, g2_hardmax) = for_both(&g1, &g2, |g| {
+        let (g1_hardmax, g2_hardmax) = for_both(g1, g2, |g| {
             (if let Some(n) = config.max_dests_per_gate.get(&g.airport) {
                 *n
-            } else if hubs.contains(&g.airport) {
+            } else if hubs.contains(&&g.airport) {
                 config.hard_max_hub
             } else {
                 config.hard_max_nonhub
             }) as usize
         });
         if for_both_permutations(
-            &(&g1, &g1_hardmax),
-            &(&g2, &g2_hardmax),
+            &(g1, &g1_hardmax),
+            &(g2, &g2_hardmax),
             |(g, hardmax), (og, _)| {
                 if destinations.get(g).map_or(0, Vec::len) >= **hardmax {
                     debug!(
@@ -147,10 +134,10 @@ pub fn run(
         {
             continue;
         }
-        if for_both_permutations(&(&g1, max1), &(&g2, max2), |(g, max), (og, _)| {
+        if for_both_permutations(&(g1, max1), &(g2, max2), |(g, max), (og, _)| {
             if destinations.get(g).map_or(0, |ds| {
                 ds.iter()
-                    .filter(|d| config.airports_flight_type(fd, &g.airport, d).unwrap() == ty)
+                    .filter(|d| config.airports_flight_type(fd, &g.airport, d) == ty)
                     .count()
             }) >= *max as usize
             {
@@ -170,7 +157,7 @@ pub fn run(
 
         for_both_permutations(&g1, &g2, |g1, g2| {
             destinations
-                .entry(g1.to_owned())
+                .entry(g1)
                 .or_default()
                 .push(g2.airport.clone());
         });
@@ -179,9 +166,9 @@ pub fn run(
             FlightType::ExistingH2N | FlightType::NonExistingH2N => h2n_fng
                 .entry(
                     (if config.range_h2n.contains_key(&*g1.airport.clone()) {
-                        &g1
+                        g1
                     } else {
-                        &g2
+                        g2
                     })
                     .airport
                     .clone(),

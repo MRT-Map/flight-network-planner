@@ -6,26 +6,26 @@ use crate::{
     types::{flight::Flight, flight_type::FlightType},
 };
 
-pub fn get_stats(res: &[Flight], config: &mut Config) -> Result<String> {
+pub fn get_stats(res: &[Flight], config: &Config) -> Result<String> {
     let flights = res.len();
     let flight_pairs = res.len() / 2;
-    let airports = config.airports()?.len();
-    let gates = config.gates()?.len();
-    let hubs = config.hubs()?;
+    let airports = config.airports().count();
+    let gates = config.gates.len();
+    let hubs = config.hubs().collect::<Vec<_>>();
     let hard_max_hub = config.hard_max_hub;
     let hard_max_nonhub = config.hard_max_nonhub;
 
-    let full_gates = config.gates()?.into_iter().filter(|g| {
+    let full_gates = config.gates.iter().filter(|g| {
         res.iter()
             .filter(|f| f.airport1 == (g.airport.clone(), g.code.clone()))
             .count()
-            >= if hubs.contains(&g.airport) {
+            >= if hubs.contains(&&g.airport) {
                 hard_max_hub
             } else {
                 hard_max_nonhub
             } as usize
     });
-    let empty_gates = config.gates()?.into_iter().filter(|g| {
+    let empty_gates = config.gates.iter().filter(|g| {
         res.iter()
             .filter(|f| f.airport1 == (g.airport.clone(), g.code.clone()))
             .count()

@@ -66,23 +66,17 @@ fn main() -> Result<()> {
     let args = Args::parse();
     match args.command {
         Command::Run(run) => {
-            let mut config: Config = serde_yaml::from_slice(&run.file.read()?)?;
-            config._folder = run
-                .file
-                .path_ref()
-                .cloned()
-                .or_else(|| std::env::current_exe().ok())
-                .and_then(|a| a.parent().map(ToOwned::to_owned));
+            let config = Config::load(&run.file)?;
             let mut fd = FlightData::from_gatelogue()?;
-            fd.preprocess(&mut config)?;
+            fd.preprocess(&config)?;
             let old_plan = if let Some(old) = &run.old {
                 Some(Flight::vec_from_str(&old.read_to_string()?)?)
             } else {
                 None
             };
-            let mut result = run::run(&mut config, &fd, old_plan.as_ref())?;
+            let mut result = run::run(&config, &fd, old_plan.as_ref())?;
             if run.stats {
-                eprintln!("\n{}", stats::get_stats(&result, &mut config)?);
+                eprintln!("\n{}", stats::get_stats(&result, &config)?);
             }
             if let Some(old_plan) = &old_plan {
                 result = update::update(old_plan, result, &config);
