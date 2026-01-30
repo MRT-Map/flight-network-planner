@@ -1,4 +1,19 @@
 # flight-network-planner
+![Crates.io Version](https://img.shields.io/crates/v/flight-network-planner)
+![Github Version](https://img.shields.io/github/v/release/MRT-Map/flight-network-planner)
+![Crates.io MSRV](https://img.shields.io/crates/msrv/flight-network-planner)
+![GitHub License](https://img.shields.io/github/license/MRT-Map/flight-network-planner)
+
+![GitHub code size](https://img.shields.io/github/languages/code-size/MRT-Map/flight-network-planner)
+![GitHub repo size](https://img.shields.io/github/repo-size/MRT-Map/flight-network-planner)
+![GitHub last commit (branch)](https://img.shields.io/github/last-commit/mrt-map/flight-network-planner/main)
+![GitHub commits since latest release (branch)](https://img.shields.io/github/commits-since/mrt-map/flight-network-planner/latest/main?include_prereleases)
+![GitHub Release Date](https://img.shields.io/github/release-date/MRT-Map/flight-network-planner)
+![Libraries.io dependency status for GitHub repo](https://img.shields.io/librariesio/github/MRT-Map/flight-network-planner)
+
+![Crates.io Downloads (recent)](https://img.shields.io/crates/dr/flight-network-planner)
+![Crates.io Total Downloads](https://img.shields.io/crates/d/flight-network-planner)
+
 [Minecart Rapid Transit](https://minecartrapidtransit.net) Flight Network Planner for airlines
 
 This planner prioritises unique flight routes and tries its best not to duplicate other airlines' flights :)
