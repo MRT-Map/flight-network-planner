@@ -76,7 +76,7 @@ fn main() -> Result<()> {
             };
             let mut result = run::run(&config, &fd, old_plan.as_ref())?;
             if run.stats {
-                eprintln!("\n{}", stats::get_stats(&result, &config)?);
+                eprintln!("\n{}", stats::get_stats(&result, &config));
             }
             if let Some(old_plan) = &old_plan {
                 result = update::update(old_plan, result, &config);

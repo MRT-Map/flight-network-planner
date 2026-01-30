@@ -107,13 +107,11 @@ pub fn run(
         }
 
         let (g1_hardmax, g2_hardmax) = for_both(g1, g2, |g| {
-            (if let Some(n) = config.max_dests_per_gate.get(&g.airport) {
-                *n
-            } else if hubs.contains(&&g.airport) {
+            config.max_dests_per_gate.get(&g.airport).map_or_else(|| if hubs.contains(&&g.airport) {
                 config.hard_max_hub
             } else {
                 config.hard_max_nonhub
-            }) as usize
+            }, |n| *n) as usize
         });
         if for_both_permutations(
             &(g1, &g1_hardmax),

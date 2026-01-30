@@ -1,4 +1,3 @@
-use anyhow::Result;
 use itertools::Itertools;
 
 use crate::{
@@ -6,7 +5,7 @@ use crate::{
     types::{flight::Flight, flight_type::FlightType},
 };
 
-pub fn get_stats(res: &[Flight], config: &Config) -> Result<String> {
+pub fn get_stats(res: &[Flight], config: &Config) -> String {
     let flights = res.len();
     let flight_pairs = res.len() / 2;
     let airports = config.airports().count();
@@ -42,7 +41,7 @@ pub fn get_stats(res: &[Flight], config: &Config) -> Result<String> {
             .contains(&f.ty)
         })
         .count();
-    Ok(format!(
+    format!(
         "==Flight Stats==\n\
         Flights: {} ({} pairs)\n\
         Destinations: {}\n\
@@ -58,15 +57,15 @@ pub fn get_stats(res: &[Flight], config: &Config) -> Result<String> {
         flight_pairs as f64 / airports as f64,
         gates,
         full_gates
-            .map(|f| f.to_string())
+            .map(std::string::ToString::to_string)
             .sorted()
             .collect::<Vec<_>>()
             .join(", "),
         empty_gates
-            .map(|f| f.to_string())
+            .map(std::string::ToString::to_string)
             .sorted()
             .collect::<Vec<_>>()
             .join(", "),
         duped_flights as f64 / flights as f64 * 100.0
-    ))
+    )
 }

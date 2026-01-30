@@ -45,7 +45,7 @@ pub struct Config {
 }
 impl Config {
     pub fn load(file: &InputArg) -> Result<Self> {
-        let mut config: Config = serde_yaml::from_slice(&file.read()?)?;
+        let mut config: Self = serde_yaml::from_slice(&file.read()?)?;
         config.gates = if let Some(gate_file) = &config.gate_file {
                 let folder = file
                     .path_ref()
