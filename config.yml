@@ -76,6 +76,7 @@ restricted_between:
     [MFM, MWK, MWT, MWL],
     [PXA, EEA, PXL],
     [PCA, NPR, YNB],
+    [REF, OAI],
   ]
 restricted_to:
   MWT: [DFM, DPH, VDA, DJE, WMA, RIV, MAX, MMA, LAR, VFW, SEG, RAA]
@@ -90,7 +91,7 @@ restricted_to:
 preferred_between: [[KEK, KZH]]
 preferred_to:
   PCE: [SVS, MWT]
-  PCA: [PCE, RED, PIA, EIA]
+  PCA: [PCE, RED, PIA, EEA]
   SHI: [CIA, KEK, TOU]
   GOD: [CIA, MWT, AIX, NPR]
   WCC: [CIA, AIX, MWT, EIA]
