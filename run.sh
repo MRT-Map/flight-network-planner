@@ -2,4 +2,4 @@
 set -euxo pipefail
 
 ./flight-network-planner run config.yml -sro out.txt
-./flight-network-planner gate-keys out.txt > gates2.txt
+./flight-network-planner gate-keys out.txt > gate-keys.txt
