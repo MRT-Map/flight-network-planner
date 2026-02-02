@@ -95,6 +95,7 @@ preferred_to:
   GOD: [CIA, MWT, AIX, NPR]
   WCC: [CIA, AIX, MWT, EIA]
   EMI: [PCE, MWT]
+  OAI: [WHT]
 no_dupes: [WMA, CAP, DHA, PCE, WCC]
 
 # == Airport restrictions ==
