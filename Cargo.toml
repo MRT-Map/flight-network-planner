@@ -22,7 +22,7 @@ serde_yaml = "=0.9.34"
 
 log = "=0.4.29"
 pretty_env_logger = "=0.5.0"
-clap = { version = "=4.5.58", features = ["derive"] }
+clap = { version = "=4.5.59", features = ["derive"] }
 clap_complete_command = { version = "=0.6.1", features = ["carapace", "fig"] }
 patharg = "=0.4.1"
 
