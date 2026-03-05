@@ -1,7 +1,7 @@
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use anyhow::{Result, anyhow};
-use gatelogue_types::{GatelogueData, World};
+use gatelogue_types::{GD, World, AirFlight, AirAirport, LocatedNode};
 use itertools::Itertools;
 use log::{debug, info, warn};
 
@@ -12,7 +12,8 @@ use crate::types::{AirlineName, AirportCode, SmolStr, config::Config};
 pub struct FlightDataFlight {
     pub airline: AirlineName,
     pub flight_number: SmolStr,
-    pub airports: Vec<AirportCode>,
+    pub from_airport: AirportCode,
+    pub to_airport: AirportCode,
 }
 
 #[expect(dead_code)]
@@ -26,50 +27,29 @@ pub struct FlightData {
 impl FlightData {
     pub fn from_gatelogue() -> Result<Self> {
         info!("Downloading gatelogue data");
-        let data = GatelogueData::ureq_get_no_sources()?;
+        let gd = GD::ureq_get_no_sources()?;
 
         info!("Processing gatelogue data");
-        let flights = data
-            .nodes
-            .values()
-            .filter_map(|a| a.as_air_flight())
-            .map(|a| {
-                let airline_name = data.get_air_airline(*a.airline)?.name.clone().into();
-
-                let flight_number = a.codes.first().ok_or_else(|| anyhow!("No codes"))?.into();
-
-                let airport_codes = a
-                    .gates
-                    .iter()
-                    .map(|a| {
-                        let airport_id = *data.get_air_gate(**a)?.airport;
-                        Ok(data.get_air_airport(airport_id)?.code.clone().into())
-                    })
-                    .collect::<Result<Vec<_>>>()?;
-
+        let flights = gd.nodes_of_type::<AirFlight>()?.into_iter()
+            .map(|af| {
                 Ok(FlightDataFlight {
-                    airline: airline_name,
-                    flight_number,
-                    airports: airport_codes,
+                    airline: af.airline(&gd)?.name(&gd)?.into(),
+                    flight_number: af.code(&gd)?.into(),
+                    from_airport: af.from(&gd)?.airport(&gd)?.code(&gd)?.into(),
+                    to_airport: af.to(&gd)?.airport(&gd)?.code(&gd)?.into(),
                 })
             })
             .collect::<Result<Vec<_>>>()?;
 
-        let old_world_airports = data
-            .nodes
-            .values()
-            .filter_map(|a| a.as_air_airport())
-            .filter(|a| a.common.world.as_ref().is_some_and(|a| **a == World::Old))
-            .map(|a| a.code.clone().into())
-            .collect();
-
-        let new_world_airports = data
-            .nodes
-            .values()
-            .filter_map(|a| a.as_air_airport())
-            .filter(|a| a.common.world.as_ref().is_none_or(|a| **a == World::New))
-            .map(|a| a.code.clone().into())
-            .collect();
+        let mut old_world_airports = vec![];
+        let mut new_world_airports = vec![];
+        for airport in gd.nodes_of_type::<AirAirport>()? {
+            if airport.world(&gd)?.is_some_and(|a| a == World::Old) {
+                old_world_airports.push(airport.code(&gd)?.into());
+            } else {
+                new_world_airports.push(airport.code(&gd)?.into());
+            }
+        }
 
         Ok(Self {
             flights,
@@ -114,10 +94,10 @@ impl FlightData {
         }
         Ok(())
     }
-    pub fn num_flights(&self, airport1: &AirportCode, airport2: &AirportCode) -> usize {
+    pub fn num_flights(&self, from: &AirportCode, to: &AirportCode) -> usize {
         self.flights
             .iter()
-            .filter(|f| f.airports.contains(airport1) && f.airports.contains(airport2))
+            .filter(|f| f.from_airport == *from && f.to_airport == *to)
             .count()
     }
 }
