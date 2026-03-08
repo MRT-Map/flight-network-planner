@@ -371,9 +371,9 @@ checksum = "77ce24cb58228fbb8aa041425bb1050850ac19177686ea6e0f41a70416f56fdb"
 
 [[package]]
 name = "gatelogue-types"
-version = "3.0.6+12"
+version = "3.0.7+12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "970fa7f005208c6f6743fd3954ede06d9e6202162e71934fc749583c3cb60338"
+checksum = "b51696ac9ecc741bf7dc347cfa521583d828f99570784874e46d57fac16b51c2"
 dependencies = [
  "enum_dispatch",
  "rusqlite",
