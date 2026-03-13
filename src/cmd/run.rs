@@ -14,7 +14,6 @@ use crate::{
     utils::{AnyAllBool, for_both, for_both_permutations},
 };
 
-
 #[expect(clippy::too_many_lines)]
 pub fn run(
     config: &Config,
@@ -54,7 +53,8 @@ pub fn run(
             });
             (g1, g2, s, ty, existed)
         })
-        .collect::<Vec<_>>().into_iter()
+        .collect::<Vec<_>>()
+        .into_iter()
         .sorted_by(|&(_, _, s1, _, existed1), &(_, _, s2, _, existed2)| {
             let s1 = if existed1 { s1 + 1 } else { s1 };
             let s2 = if existed2 { s2 + 1 } else { s2 };
@@ -107,11 +107,16 @@ pub fn run(
         }
 
         let (g1_hardmax, g2_hardmax) = for_both(g1, g2, |g| {
-            config.max_dests_per_gate.get(&g.airport).map_or_else(|| if hubs.contains(&&g.airport) {
-                config.hard_max_hub
-            } else {
-                config.hard_max_nonhub
-            }, |n| *n) as usize
+            config.max_dests_per_gate.get(&g.airport).map_or_else(
+                || {
+                    if hubs.contains(&&g.airport) {
+                        config.hard_max_hub
+                    } else {
+                        config.hard_max_nonhub
+                    }
+                },
+                |n| *n,
+            ) as usize
         });
         if for_both_permutations(
             &(g1, &g1_hardmax),
@@ -154,10 +159,7 @@ pub fn run(
         }
 
         for_both_permutations(&g1, &g2, |g1, g2| {
-            destinations
-                .entry(g1)
-                .or_default()
-                .push(g2.airport.clone());
+            destinations.entry(g1).or_default().push(g2.airport.clone());
         });
         let fng = match ty {
             FlightType::ExistingH2H | FlightType::NonExistingH2H => &mut h2h_fng,

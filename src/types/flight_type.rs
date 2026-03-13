@@ -57,12 +57,7 @@ impl Config {
             FlightType::NonExistingN2N
         }
     }
-    pub fn gates_flight_type(
-        &self,
-        flight_data: &FlightData,
-        g1: &Gate,
-        g2: &Gate,
-    ) -> FlightType {
+    pub fn gates_flight_type(&self, flight_data: &FlightData, g1: &Gate, g2: &Gate) -> FlightType {
         self.airports_flight_type(flight_data, &g1.airport, &g2.airport)
     }
 }

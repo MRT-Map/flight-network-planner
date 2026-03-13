@@ -47,62 +47,58 @@ impl Config {
     pub fn load(file: &InputArg) -> Result<Self> {
         let mut config: Self = serde_yaml::from_slice(&file.read()?)?;
         config.gates = if let Some(gate_file) = &config.gate_file {
-                let folder = file
-                    .path_ref()
-                    .cloned()
-                    .or_else(|| std::env::current_exe().ok())
-                    .and_then(|a| a.parent().map(ToOwned::to_owned));
-                let gate_file = folder
-                    .as_ref()
-                    .map_or_else(|| gate_file.to_owned(), |folder| folder.join(gate_file));
-                std::fs::read_to_string(gate_file)?
-                    .split('\n')
-                    .filter(|l| !l.trim().is_empty())
-                    .map(|l| {
-                        Some({
-                            let params = l.split(' ').collect::<Vec<_>>();
-                            Gate {
-                                airport: params.first()?.trim().into(),
-                                code: params.get(1)?.trim().into(),
-                                size: params.get(2)?.trim().into(),
-                            }
-                        })
+            let folder = file
+                .path_ref()
+                .cloned()
+                .or_else(|| std::env::current_exe().ok())
+                .and_then(|a| a.parent().map(ToOwned::to_owned));
+            let gate_file = folder
+                .as_ref()
+                .map_or_else(|| gate_file.to_owned(), |folder| folder.join(gate_file));
+            std::fs::read_to_string(gate_file)?
+                .split('\n')
+                .filter(|l| !l.trim().is_empty())
+                .map(|l| {
+                    Some({
+                        let params = l.split(' ').collect::<Vec<_>>();
+                        Gate {
+                            airport: params.first()?.trim().into(),
+                            code: params.get(1)?.trim().into(),
+                            size: params.get(2)?.trim().into(),
+                        }
                     })
-                    .collect::<Option<Vec<_>>>()
-                    .ok_or_else(|| anyhow!("Invalid gate file"))?
-            } else {
-                config._gates
-                    .iter()
-                    .flat_map(|(a, pgs)| {
-                        pgs.iter().map(|pg| Gate {
-                            airport: a.to_owned(),
-                            code: pg.code.clone(),
-                            size: pg.size.clone(),
-                        })
+                })
+                .collect::<Option<Vec<_>>>()
+                .ok_or_else(|| anyhow!("Invalid gate file"))?
+        } else {
+            config
+                ._gates
+                .iter()
+                .flat_map(|(a, pgs)| {
+                    pgs.iter().map(|pg| Gate {
+                        airport: a.to_owned(),
+                        code: pg.code.clone(),
+                        size: pg.size.clone(),
                     })
-                    .collect()
-            };
+                })
+                .collect()
+        };
         Ok(config)
-
-
     }
     pub fn airports(&self) -> impl Iterator<Item = &AirportCode> {
-        self
-            .gates
-            .iter()
-            .map(|g| &g.airport)
-            .sorted()
-            .dedup()
+        self.gates.iter().map(|g| &g.airport).sorted().dedup()
     }
     pub fn hubs(&self) -> Box<dyn Iterator<Item = &AirportCode> + '_> {
         if self.hubs.is_empty() {
-            Box::new(self.gates
-                .iter()
-                .map(|g| &g.airport)
-                .collect::<Counter<_>>()
-                .into_iter()
-                .filter(|(_, c)| *c >= self.hub_threshold)
-                .map(|(a, _)| a))
+            Box::new(
+                self.gates
+                    .iter()
+                    .map(|g| &g.airport)
+                    .collect::<Counter<_>>()
+                    .into_iter()
+                    .filter(|(_, c)| *c >= self.hub_threshold)
+                    .map(|(a, _)| a),
+            )
         } else {
             Box::new(self.hubs.iter())
         }
@@ -115,12 +111,7 @@ impl Config {
         }
     }
 
-    pub fn is_valid_flight(
-        &self,
-        fd: &FlightData,
-        g1: &Gate,
-        g2: &Gate,
-    ) -> bool {
+    pub fn is_valid_flight(&self, fd: &FlightData, g1: &Gate, g2: &Gate) -> bool {
         if g1.airport == g2.airport || g1.size != g2.size {
             return false;
         }

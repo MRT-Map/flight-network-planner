@@ -1,7 +1,7 @@
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use anyhow::{Result, anyhow};
-use gatelogue_types::{GD, World, AirFlight, AirAirport, LocatedNode};
+use gatelogue_types::{AirAirport, AirFlight, GD, LocatedNode, World};
 use itertools::Itertools;
 use log::{debug, info, warn};
 
@@ -30,7 +30,9 @@ impl FlightData {
         let gd = GD::ureq_get_no_sources()?;
 
         info!("Processing gatelogue data");
-        let flights = gd.nodes_of_type::<AirFlight>()?.into_iter()
+        let flights = gd
+            .nodes_of_type::<AirFlight>()?
+            .into_iter()
             .map(|af| {
                 Ok(FlightDataFlight {
                     airline: af.airline(&gd)?.name(&gd)?.into(),
@@ -65,7 +67,8 @@ impl FlightData {
             .retain(|f| !config.ignored_airlines().contains(&f.airline));
 
         debug!("Checking airport codes");
-        config.airports()
+        config
+            .airports()
             .filter(|a| {
                 !self.new_world_airports.contains(a) && !self.old_world_airports.contains(a)
             })

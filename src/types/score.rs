@@ -45,12 +45,7 @@ impl Config {
 
         s
     }
-    pub fn gates_score(
-        &self,
-        flight_data: &FlightData,
-        g1: &Gate,
-        g2: &Gate,
-    ) -> i8 {
+    pub fn gates_score(&self, flight_data: &FlightData, g1: &Gate, g2: &Gate) -> i8 {
         let mut s = self.airports_score(flight_data, &g1.airport, &g2.airport);
         if &*g1.size != "S" {
             s += 2;
