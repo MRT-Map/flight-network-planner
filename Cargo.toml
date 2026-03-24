@@ -1,6 +1,6 @@
 [package]
 name = "flight-network-planner"
-version = "1.2.13"
+version = "1.2.14"
 edition = "2024"
 description = "Minecart Rapid Transit Flight Network Planner for airlines"
 authors = ["MRT Mapping Services", "7d <61975820+iiiii7d@users.noreply.github.com>"]
@@ -32,7 +32,8 @@ regex = "=1.12.3"
 smol_str = { version = "=0.3.6", features = ["serde"] }
 rayon = "=1.11.0"
 
-gatelogue-types = { version = "3.0", features = ["ureq_get", "bundled"] }
+gatelogue-types = { version = "3.1", features = ["bundled"] }
+ureq = "=3.3.0"
 counter = "=0.7.0"
 
 [profile.release]
