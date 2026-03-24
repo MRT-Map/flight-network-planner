@@ -1,7 +1,7 @@
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use anyhow::{Result, anyhow};
-use gatelogue_types::{AirAirport, AirFlight, GD, LocatedNode, World};
+use gatelogue_types::{AirAirport, AirFlight, GD, LocatedNode, World, getter};
 use itertools::Itertools;
 use log::{debug, info, warn};
 
@@ -27,7 +27,7 @@ pub struct FlightData {
 impl FlightData {
     pub fn from_gatelogue() -> Result<Self> {
         info!("Downloading gatelogue data");
-        let gd = GD::ureq_get_no_sources()?;
+        let gd = GD::get_no_sources(getter!(ureq))?;
 
         info!("Processing gatelogue data");
         let flights = gd
