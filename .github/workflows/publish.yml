@@ -1,38 +1,48 @@
+name: Publish
 
 on:
   push:
-    branches: ["renovate/**"]
+    tags: ["**"]
   workflow_dispatch:
 
+env:
+  # renovate: datasource=github-tags depName=rust-lang/rust versioning=rust-release-channel
+  RUST_VERSION: 1.94.1
+
 jobs:
-  # test:
-  #   strategy:
-  #     matrix:
-  #       os: [ ubuntu-latest, macos-latest, windows-latest ]
-  #   runs-on: ${{ matrix.os }}
-  #
-  #   steps:
-  #   - uses: actions/checkout@v5
-  #   - run: cargo test -- --nocapture
-  #     env:
-  #       OUT_DIR: target
-  
-  version:
+  changelog-version:
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.version.outputs.version }}
+      changelog: ${{ steps.changelog.outputs.changelog }}
     permissions:
-      contents: write
+      contents: read
 
     steps:
     - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-    - run: cargo update
+    - uses: actions-rust-lang/setup-rust-toolchain@150fca883cd4034361b621bd4e6a9d34e5143606 # v1.15.4
+      with:
+        toolchain: ${{ env.RUST_VERSION }}
+
     - id: version
       run: echo "version=v$(cargo pkgid | cut -d '#' -f 2)" >> "$GITHUB_OUTPUT"
+    - id: changelog
+      run: |
+        {
+          echo 'changelog<<__EOF__'
+          python -c "
+        import os
+        version = os.environ['VERSION']
+        print('\n'.join(open('../../CHANGELOG.md').read().split('## '+version)[1].split('\n')[1:]).split('\n##')[0])
+          "
+          echo __EOF__
+        } >> "$GITHUB_OUTPUT"
+      env:
+        VERSION: ${{ steps.version.outputs.version }}
 
   build: # adapted from https://github.com/foresterre/cargo-msrv/blob/main/.github/workflows/build-release-binaries.yaml
     runs-on: ${{ matrix.os }}
-    needs: version
+    needs: changelog-version
     permissions:
       contents: read
     strategy:
@@ -66,30 +76,34 @@ jobs:
 
     steps:
     - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-    - uses: actions-rs/toolchain@16499b5e05bf2e26879000db0c1d13f7e13fa3af # v1.0.7
+    - uses: actions-rust-lang/setup-rust-toolchain@150fca883cd4034361b621bd4e6a9d34e5143606 # v1.15.4
       with:
-        toolchain: stable
+        toolchain: ${{ env.RUST_VERSION }}
         target: ${{ matrix.target }}
+
     - shell: bash
       run: |
-        echo "archive=flight-network-planner-${{ matrix.target }}-${{ needs.version.outputs.version }}.${{ matrix.archive_ext }}" >> $GITHUB_ENV
-        echo "subfolder=flight-network-planner-${{ matrix.target }}-${{ needs.version.outputs.version }}" >> $GITHUB_ENV
+        echo "archive=flight-network-planner-${{ matrix.target }}-${{ needs.changelog-version.outputs.version }}.${{ matrix.archive_ext }}" >> "$GITHUB_ENV"
+        echo "subfolder=flight-network-planner-${{ matrix.target }}-${{ needs.changelog-version.outputs.version }}" >> "$GITHUB_ENV"
     - shell: bash
       run: mkdir ${{ env.subfolder }}
 
     - if: matrix.target == 'x86_64-unknown-linux-musl'
       uses: awalsh128/cache-apt-pkgs-action@v1
+      env:
+        # renovate: datasource=deb depName=musl-tools
+        MUSL_TOOLS_VERSION: 1.2.5-3
       with:
-        packages: musl-tools
+        packages: musl-tools=${{ env.MUSL_TOOLS_VERSION }}
         version: 1.0
 
     - shell: bash
-      run: cargo --locked build --target=${{ matrix.target }} --release
+      run: cargo build --locked --target=${{ matrix.target }} --release
       
     - if: matrix.kind == 'macos'
       shell: bash
       run: |
-        cp  ./target/${{ matrix.target }}/release/flight-network-planner ${{ env.subfolder }}
+        cp target/${{ matrix.target }}/release/flight-network-planner ${{ env.subfolder }}
         gtar --create --gzip --file=${{ env.archive }} ${{ env.subfolder }}
     - if: matrix.kind == 'linux'
       shell: bash
@@ -107,21 +121,19 @@ jobs:
         name: ${{ matrix.target }}
         path: ./${{ env.archive }}
 
-
   github-release:
     runs-on: ubuntu-latest
-    needs: [build, version]
-    if: github.event_name != 'pull_request' && !startsWith(github.ref_name, 'renovate/')
+    needs: [build, changelog-version]
     permissions:
       contents: write
 
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - uses: actions-rs/toolchain@16499b5e05bf2e26879000db0c1d13f7e13fa3af # v1.0.7
+      - uses: actions-rust-lang/setup-rust-toolchain@150fca883cd4034361b621bd4e6a9d34e5143606 # v1.15.4
         with:
-          toolchain: stable
+          toolchain: ${{ env.RUST_VERSION }}
 
-      - run: cargo package
+      - run: cargo package --locked
       - run: mkdir dist
       - run: mv target/package/*.crate dist
 
@@ -148,21 +160,40 @@ jobs:
 
       - uses: softprops/action-gh-release@153bb8e04406b158c6c84fc1615b65b24149a1fe # v2.6.1
         with:
-          tag_name: ${{ needs.version.outputs.version }}
+          body: ${{ needs.changelog-version.outputs.changelog }}
+          tag_name: ${{ needs.changelog-version.outputs.version }}
           files: dist/*
 
   crates-io:
     runs-on: ubuntu-latest
     needs: build
-    if: github.event_name != 'pull_request' && !startsWith(github.ref_name, 'renovate/')
-    environment: crates
+    environment:
+      name: crates
+      url: https://crates.io/crates/flight-network-planner
     permissions:
       id-token: write
 
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions-rust-lang/setup-rust-toolchain@150fca883cd4034361b621bd4e6a9d34e5143606 # v1.15.4
+        with:
+          toolchain: ${{ env.RUST_VERSION }}
       - uses: rust-lang/crates-io-auth-action@bbd81622f20ce9e2dd9622e3218b975523e45bbe # v1.0.4
         id: auth
-      - run: cargo publish
+      - run: cargo publish --locked
         env:
           CARGO_REGISTRY_TOKEN: ${{ steps.auth.outputs.token }}
+
+  delete-github-release:
+    runs-on: ubuntu-latest
+    needs: [ changelog-version, build, github-release, crates-io ]
+    if: ${{ always() && contains(needs.*.result, 'failure') }}
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - run: gh release delete "$TAG" --cleanup-tag -y
+        env:
+          TAG: ${{ needs.changelog-version.outputs.version }}
+          GH_TOKEN: ${{ github.token }}
