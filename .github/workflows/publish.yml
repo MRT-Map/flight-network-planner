@@ -89,7 +89,7 @@ jobs:
       run: mkdir ${{ env.subfolder }}
 
     - if: matrix.target == 'x86_64-unknown-linux-musl'
-      uses: awalsh128/cache-apt-pkgs-action@v1.6.0
+      uses: awalsh128/cache-apt-pkgs-action@acb598e5ddbc6f68a970c5da0688d2f3a9f04d05 # v1.6.0
       env:
         # renovate: datasource=deb depName=musl-tools
         MUSL_TOOLS_VERSION: 1.2.4-2
