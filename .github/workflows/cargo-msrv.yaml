@@ -2,6 +2,7 @@ on:
   workflow_dispatch:
   push:
     paths: ["**/Cargo.toml", "**/Cargo.lock"]
+    branches: ["dev"]
     
 jobs:
   cargo-msrv:
@@ -9,5 +10,3 @@ jobs:
       contents: write
       pull-requests: write
     uses: iiiii7d/cargo-msrv-workflow/.github/workflows/workflow.yml@cbce077750b4f0477f29a63420915b330db645bd # main
-    with:
-      checkout-ref: dev
