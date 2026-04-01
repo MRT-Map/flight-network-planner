@@ -33,7 +33,7 @@ jobs:
           python -c "
         import os
         version = os.environ['VERSION']
-        print('\n'.join(open('../../CHANGELOG.md').read().split('## '+version)[1].split('\n')[1:]).split('\n##')[0])
+        print('\n'.join(open('CHANGELOG.md').read().split('## '+version)[1].split('\n')[1:]).split('\n##')[0])
           "
           echo __EOF__
         } >> "$GITHUB_OUTPUT"
@@ -89,10 +89,10 @@ jobs:
       run: mkdir ${{ env.subfolder }}
 
     - if: matrix.target == 'x86_64-unknown-linux-musl'
-      uses: awalsh128/cache-apt-pkgs-action@v1
+      uses: awalsh128/cache-apt-pkgs-action@v1.6.0
       env:
         # renovate: datasource=deb depName=musl-tools
-        MUSL_TOOLS_VERSION: 1.2.5-3
+        MUSL_TOOLS_VERSION: 1.2.4-2
       with:
         packages: musl-tools=${{ env.MUSL_TOOLS_VERSION }}
         version: 1.0
@@ -197,3 +197,4 @@ jobs:
         env:
           TAG: ${{ needs.changelog-version.outputs.version }}
           GH_TOKEN: ${{ github.token }}
+        continue-on-error: true
