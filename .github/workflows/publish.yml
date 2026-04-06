@@ -20,9 +20,13 @@ jobs:
 
     steps:
     - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      with:
+        persist-credentials: false
+        submodules: true
     - uses: actions-rust-lang/setup-rust-toolchain@150fca883cd4034361b621bd4e6a9d34e5143606 # v1.15.4
       with:
         toolchain: ${{ env.RUST_VERSION }}
+        cache: false
 
     - id: version
       run: echo "version=v$(cargo pkgid | cut -d '#' -f 2)" >> "$GITHUB_OUTPUT"
@@ -76,26 +80,29 @@ jobs:
 
     steps:
     - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      with:
+        persist-credentials: false
+        submodules: true
     - uses: actions-rust-lang/setup-rust-toolchain@150fca883cd4034361b621bd4e6a9d34e5143606 # v1.15.4
       with:
         toolchain: ${{ env.RUST_VERSION }}
         target: ${{ matrix.target }}
+        cache: false
 
     - shell: bash
       run: |
-        echo "archive=flight-network-planner-${{ matrix.target }}-${{ needs.changelog-version.outputs.version }}.${{ matrix.archive_ext }}" >> "$GITHUB_ENV"
-        echo "subfolder=flight-network-planner-${{ matrix.target }}-${{ needs.changelog-version.outputs.version }}" >> "$GITHUB_ENV"
+        echo "ARCHIVE=flight-network-planner-${{ matrix.target }}-$VERSION.${{ matrix.archive_ext }}" >> "$GITHUB_ENV"
+        echo "SUBFOLDER=flight-network-planner-${{ matrix.target }}-$VERSION" >> "$GITHUB_ENV"
+      env:
+        VERSION: ${{ needs.changelog-version.outputs.version }}
     - shell: bash
-      run: mkdir ${{ env.subfolder }}
+      run: mkdir "$SUBFOLDER"
 
     - if: matrix.target == 'x86_64-unknown-linux-musl'
-      uses: awalsh128/cache-apt-pkgs-action@acb598e5ddbc6f68a970c5da0688d2f3a9f04d05 # v1.6.0
       env:
         # renovate: datasource=deb depName=musl-tools
         MUSL_TOOLS_VERSION: 1.2.4-2
-      with:
-        packages: musl-tools=${{ env.MUSL_TOOLS_VERSION }}
-        version: 1.0
+      run: apt install -y --no-install-recommends "musl-tools=$MUSL_TOOLS_VERSION"
 
     - shell: bash
       run: cargo build --locked --target=${{ matrix.target }} --release
@@ -103,22 +110,22 @@ jobs:
     - if: matrix.kind == 'macos'
       shell: bash
       run: |
-        cp target/${{ matrix.target }}/release/flight-network-planner ${{ env.subfolder }}
-        gtar --create --gzip --file=${{ env.archive }} ${{ env.subfolder }}
+        cp target/${{ matrix.target }}/release/flight-network-planner "$SUBFOLDER"
+        gtar --create --gzip --file="$ARCHIVE" "$SUBFOLDER"
     - if: matrix.kind == 'linux'
       shell: bash
       run: |
-        cp target/${{ matrix.target }}/release/flight-network-planner ${{ env.subfolder }}
-        tar --create --gzip --file=${{ env.archive }} ${{ env.subfolder }}
+        cp target/${{ matrix.target }}/release/flight-network-planner "$SUBFOLDER"
+        tar --create --gzip --file="$ARCHIVE" "$SUBFOLDER"
     - if: matrix.kind == 'windows'
       shell: bash
       run: |
-        cp target/${{ matrix.target }}/release/flight-network-planner.exe ./${{ env.subfolder }}
-        7z a -tzip ${{ env.archive }} ${{ env.subfolder }}
+        cp target/${{ matrix.target }}/release/flight-network-planner.exe "./$SUBFOLDER"
+        7z a -tzip "$ARCHIVE" "$SUBFOLDER"
     - uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
       with:
         name: ${{ matrix.target }}
-        path: ./${{ env.archive }}
+        path: ./${{ env.ARCHIVE }}
 
   github-release:
     runs-on: ubuntu-latest
@@ -130,9 +137,13 @@ jobs:
 
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+          submodules: true
       - uses: actions-rust-lang/setup-rust-toolchain@150fca883cd4034361b621bd4e6a9d34e5143606 # v1.15.4
         with:
           toolchain: ${{ env.RUST_VERSION }}
+          cache: false
 
       - run: cargo package --locked
       - run: mkdir dist
@@ -179,9 +190,13 @@ jobs:
 
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+          submodules: true
       - uses: actions-rust-lang/setup-rust-toolchain@150fca883cd4034361b621bd4e6a9d34e5143606 # v1.15.4
         with:
           toolchain: ${{ env.RUST_VERSION }}
+          cache: false
       - uses: rust-lang/crates-io-auth-action@bbd81622f20ce9e2dd9622e3218b975523e45bbe # v1.0.4
         id: auth
       - run: cargo publish --locked
@@ -197,6 +212,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+          submodules: true
       - run: gh release delete "$TAG" --cleanup-tag -y
         env:
           TAG: ${{ needs.changelog-version.outputs.version }}
