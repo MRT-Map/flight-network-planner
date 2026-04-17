@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 env:
-  # renovate: datasource=github-tags depName=rust-lang/rust versioning=rust-release-channel
+  # renovate: datasource=github-tags depName=rust-lang/rust
   RUST_VERSION: 1.94.1
 
 jobs:
@@ -20,9 +20,13 @@ jobs:
 
     steps:
     - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-    - uses: actions-rust-lang/setup-rust-toolchain@2b1f5e9b395427c92ee4e3331786ca3c37afe2d7 # v1.16.0
+      with:
+        persist-credentials: false
+        submodules: true
+    - uses: actions-rust-lang/setup-rust-toolchain@150fca883cd4034361b621bd4e6a9d34e5143606 # v1.15.4
       with:
         toolchain: ${{ env.RUST_VERSION }}
+        cache: false
 
     - id: version
       run: echo "version=v$(cargo pkgid | cut -d '#' -f 2)" >> "$GITHUB_OUTPUT"
@@ -33,7 +37,7 @@ jobs:
           python -c "
         import os
         version = os.environ['VERSION']
-        print('\n'.join(open('../../CHANGELOG.md').read().split('## '+version)[1].split('\n')[1:]).split('\n##')[0])
+        print('\n'.join(open('CHANGELOG.md').read().split('## '+version)[1].split('\n')[1:]).split('\n##')[0])
           "
           echo __EOF__
         } >> "$GITHUB_OUTPUT"
@@ -76,26 +80,29 @@ jobs:
 
     steps:
     - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-    - uses: actions-rust-lang/setup-rust-toolchain@2b1f5e9b395427c92ee4e3331786ca3c37afe2d7 # v1.16.0
+      with:
+        persist-credentials: false
+        submodules: true
+    - uses: actions-rust-lang/setup-rust-toolchain@150fca883cd4034361b621bd4e6a9d34e5143606 # v1.15.4
       with:
         toolchain: ${{ env.RUST_VERSION }}
         target: ${{ matrix.target }}
+        cache: false
 
     - shell: bash
       run: |
-        echo "archive=flight-network-planner-${{ matrix.target }}-${{ needs.changelog-version.outputs.version }}.${{ matrix.archive_ext }}" >> "$GITHUB_ENV"
-        echo "subfolder=flight-network-planner-${{ matrix.target }}-${{ needs.changelog-version.outputs.version }}" >> "$GITHUB_ENV"
+        echo "ARCHIVE=flight-network-planner-${{ matrix.target }}-$VERSION.${{ matrix.archive_ext }}" >> "$GITHUB_ENV"
+        echo "SUBFOLDER=flight-network-planner-${{ matrix.target }}-$VERSION" >> "$GITHUB_ENV"
+      env:
+        VERSION: ${{ needs.changelog-version.outputs.version }}
     - shell: bash
-      run: mkdir ${{ env.subfolder }}
+      run: mkdir "$SUBFOLDER"
 
     - if: matrix.target == 'x86_64-unknown-linux-musl'
-      uses: awalsh128/cache-apt-pkgs-action@v1
       env:
         # renovate: datasource=deb depName=musl-tools
-        MUSL_TOOLS_VERSION: 1.2.5-3
-      with:
-        packages: musl-tools=${{ env.MUSL_TOOLS_VERSION }}
-        version: 1.0
+        MUSL_TOOLS_VERSION: 1.2.4-2
+      run: apt install -y --no-install-recommends "musl-tools=$MUSL_TOOLS_VERSION"
 
     - shell: bash
       run: cargo build --locked --target=${{ matrix.target }} --release
@@ -103,35 +110,41 @@ jobs:
     - if: matrix.kind == 'macos'
       shell: bash
       run: |
-        cp target/${{ matrix.target }}/release/flight-network-planner ${{ env.subfolder }}
-        gtar --create --gzip --file=${{ env.archive }} ${{ env.subfolder }}
+        cp target/${{ matrix.target }}/release/flight-network-planner "$SUBFOLDER"
+        gtar --create --gzip --file="$ARCHIVE" "$SUBFOLDER"
     - if: matrix.kind == 'linux'
       shell: bash
       run: |
-        cp target/${{ matrix.target }}/release/flight-network-planner ${{ env.subfolder }}
-        tar --create --gzip --file=${{ env.archive }} ${{ env.subfolder }}
+        cp target/${{ matrix.target }}/release/flight-network-planner "$SUBFOLDER"
+        tar --create --gzip --file="$ARCHIVE" "$SUBFOLDER"
     - if: matrix.kind == 'windows'
       shell: bash
       run: |
-        cp target/${{ matrix.target }}/release/flight-network-planner.exe ./${{ env.subfolder }}
-        7z a -tzip ${{ env.archive }} ${{ env.subfolder }}
-    
+        cp target/${{ matrix.target }}/release/flight-network-planner.exe "./$SUBFOLDER"
+        7z a -tzip "$ARCHIVE" "$SUBFOLDER"
+
     - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
       with:
         name: ${{ matrix.target }}
-        path: ./${{ env.archive }}
+        path: ./${{ env.ARCHIVE }}
 
   github-release:
     runs-on: ubuntu-latest
     needs: [build, changelog-version]
     permissions:
       contents: write
+      id-token: write
+      attestations: write
 
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - uses: actions-rust-lang/setup-rust-toolchain@2b1f5e9b395427c92ee4e3331786ca3c37afe2d7 # v1.16.0
+        with:
+          persist-credentials: false
+          submodules: true
+      - uses: actions-rust-lang/setup-rust-toolchain@150fca883cd4034361b621bd4e6a9d34e5143606 # v1.15.4
         with:
           toolchain: ${{ env.RUST_VERSION }}
+          cache: false
 
       - run: cargo package --locked
       - run: mkdir dist
@@ -158,6 +171,9 @@ jobs:
           name: x86_64-pc-windows-msvc
           path: dist
 
+      - uses: actions/attest@59d89421af93a897026c735860bf21b6eb4f7b26 # v4.1.0
+        with:
+          subject-path: dist/*
       - uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2.6.2
         with:
           body: ${{ needs.changelog-version.outputs.changelog }}
@@ -175,9 +191,13 @@ jobs:
 
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - uses: actions-rust-lang/setup-rust-toolchain@2b1f5e9b395427c92ee4e3331786ca3c37afe2d7 # v1.16.0
+        with:
+          persist-credentials: false
+          submodules: true
+      - uses: actions-rust-lang/setup-rust-toolchain@150fca883cd4034361b621bd4e6a9d34e5143606 # v1.15.4
         with:
           toolchain: ${{ env.RUST_VERSION }}
+          cache: false
       - uses: rust-lang/crates-io-auth-action@bbd81622f20ce9e2dd9622e3218b975523e45bbe # v1.0.4
         id: auth
       - run: cargo publish --locked
@@ -193,7 +213,11 @@ jobs:
 
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+          submodules: true
       - run: gh release delete "$TAG" --cleanup-tag -y
         env:
           TAG: ${{ needs.changelog-version.outputs.version }}
           GH_TOKEN: ${{ github.token }}
+        continue-on-error: true
