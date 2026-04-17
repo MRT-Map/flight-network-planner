@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 env:
-  # renovate: datasource=github-tags depName=rust-lang/rust versioning=rust-release-channel
+  # renovate: datasource=github-tags depName=rust-lang/rust
   RUST_VERSION: 1.94.1
 
 jobs:
