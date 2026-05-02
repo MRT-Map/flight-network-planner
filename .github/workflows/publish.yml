@@ -6,8 +6,8 @@ on:
   workflow_dispatch:
 
 env:
-  # renovate: datasource=github-tags depName=rust-lang/rust
-  RUST_VERSION: 1.94.1
+  # renovate: datasource=rust-version depName=rust-stable
+  RUST_VERSION: 1.95.0
 
 jobs:
   changelog-version:
