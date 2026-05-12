@@ -11,5 +11,5 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
-    uses: iiiii7d/cargo-msrv-workflow/.github/workflows/workflow.yml@26d4b3e0cf218038d4f6ab333e0e9bc5db75a0ea # main
+    uses: iiiii7d/cargo-msrv-workflow/.github/workflows/workflow.yml@926fd7a0929771e61be6cbd58bfa0326ae65a59e # main
 
