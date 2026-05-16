@@ -5,10 +5,6 @@ on:
     tags: ["**"]
   workflow_dispatch:
 
-env:
-  # renovate: datasource=rust-version depName=rust-stable
-  RUST_VERSION: 1.95.0
-
 jobs:
   changelog-version:
     runs-on: ubuntu-latest
@@ -23,10 +19,10 @@ jobs:
       with:
         persist-credentials: false
         submodules: true
-    - uses: actions-rust-lang/setup-rust-toolchain@46268bd060767258de96ed93c1251119784f2ab6 # v1.16.1
+    - uses: ./.github/actions/mise
       with:
-        toolchain: ${{ env.RUST_VERSION }}
-        cache: false
+          cache: false
+          envs: ''
 
     - id: version
       run: echo "version=v$(cargo pkgid | cut -d '#' -f 2)" >> "$GITHUB_OUTPUT"
@@ -78,16 +74,20 @@ jobs:
             archive_ext: zip
             kind: windows
 
+          - target: aarch64-pc-windows-msvc
+            os: windows-11-arm
+            archive_ext: zip
+            kind: windows
+
     steps:
     - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       with:
         persist-credentials: false
         submodules: true
-    - uses: actions-rust-lang/setup-rust-toolchain@46268bd060767258de96ed93c1251119784f2ab6 # v1.16.1
+    - uses: ./.github/actions/mise
       with:
-        toolchain: ${{ env.RUST_VERSION }}
-        target: ${{ matrix.target }}
-        cache: false
+          cache: false
+          envs: ''
 
     - shell: bash
       run: |
@@ -141,10 +141,10 @@ jobs:
         with:
           persist-credentials: false
           submodules: true
-      - uses: actions-rust-lang/setup-rust-toolchain@46268bd060767258de96ed93c1251119784f2ab6 # v1.16.1
+      - uses: ./.github/actions/mise
         with:
-          toolchain: ${{ env.RUST_VERSION }}
           cache: false
+          envs: ''
 
       - run: cargo package --locked
       - run: mkdir dist
@@ -170,11 +170,15 @@ jobs:
         with:
           name: x86_64-pc-windows-msvc
           path: dist
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: aarch64-pc-windows-msvc
+          path: dist
 
       - uses: actions/attest@59d89421af93a897026c735860bf21b6eb4f7b26 # v4.1.0
         with:
           subject-path: dist/*
-      - uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda # v3.0.0
+      - uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda # v3.0.0  # zizmor: ignore[superfluous-actions]
         with:
           body: ${{ needs.changelog-version.outputs.changelog }}
           tag_name: ${{ needs.changelog-version.outputs.version }}
@@ -194,10 +198,10 @@ jobs:
         with:
           persist-credentials: false
           submodules: true
-      - uses: actions-rust-lang/setup-rust-toolchain@46268bd060767258de96ed93c1251119784f2ab6 # v1.16.1
+      - uses: ./.github/actions/mise
         with:
-          toolchain: ${{ env.RUST_VERSION }}
           cache: false
+          envs: ''
       - uses: rust-lang/crates-io-auth-action@bbd81622f20ce9e2dd9622e3218b975523e45bbe # v1.0.4
         id: auth
       - run: cargo publish --locked
@@ -205,7 +209,7 @@ jobs:
           CARGO_REGISTRY_TOKEN: ${{ steps.auth.outputs.token }}
 
   delete-github-release:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     needs: [ changelog-version, build, github-release, crates-io ]
     if: ${{ always() && contains(needs.*.result, 'failure') }}
     permissions:
@@ -215,7 +219,6 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
-          submodules: true
       - run: gh release delete "$TAG" --cleanup-tag -y
         env:
           TAG: ${{ needs.changelog-version.outputs.version }}
