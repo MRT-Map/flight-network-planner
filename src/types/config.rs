@@ -86,7 +86,7 @@ impl Config {
         Ok(config)
     }
     pub fn airports(&self) -> impl Iterator<Item = &AirportCode> {
-        self.gates.iter().map(|g| &g.airport).sorted().dedup()
+        self.gates.iter().map(|g| &g.airport).unique()
     }
     pub fn hubs(&self) -> Box<dyn Iterator<Item = &AirportCode> + '_> {
         if self.hubs.is_empty() {

@@ -1,6 +1,6 @@
 [package]
 name = "flight-network-planner"
-version = "1.2.15"
+version = "1.2.16-rc.0"
 edition = "2024"
 description = "Minecart Rapid Transit Flight Network Planner for airlines"
 authors = ["MRT Mapping Services", "7d <61975820+iiiii7d@users.noreply.github.com>"]
@@ -22,7 +22,7 @@ serde_yaml = "=0.9.34"
 
 log = "=0.4.29"
 pretty_env_logger = "=0.5.0"
-clap = { version = "=4.6.0", features = ["derive"] }
+clap = { version = "=4.6.1", features = ["derive"] }
 clap_complete_command = { version = "=0.6.1", features = ["carapace", "fig"] }
 patharg = "=0.4.1"
 
@@ -30,9 +30,9 @@ anyhow = { version = "=1.0.102", features = ["backtrace"] }
 itertools = "=0.14.0"
 regex = "=1.12.3"
 smol_str = { version = "=0.3.6", features = ["serde"] }
-rayon = "=1.11.0"
+rayon = "=1.12.0"
 
-gatelogue-types = { version = "=3.1.2", features = ["bundled"] }
+gatelogue-types = { version = "=3.1.3", features = ["bundled"] }
 ureq = "=3.3.0"
 counter = "=0.7.1"
 
