@@ -346,7 +346,7 @@ dependencies = [
 
 [[package]]
 name = "flight-network-planner"
-version = "1.2.15"
+version = "1.2.16-rc.0"
 dependencies = [
  "anyhow",
  "clap",
@@ -373,9 +373,9 @@ checksum = "77ce24cb58228fbb8aa041425bb1050850ac19177686ea6e0f41a70416f56fdb"
 
 [[package]]
 name = "gatelogue-types"
-version = "3.1.2+13"
+version = "3.1.3+13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "742d34614273101913bffbd048c9a3cbba826cb14dc96d944566bb09a9fa9f86"
+checksum = "a09078833a9a8993185155c5af036d1e190af377d804ed17c6c8165a3e657d29"
 dependencies = [
  "anyhow",
  "enum_dispatch",

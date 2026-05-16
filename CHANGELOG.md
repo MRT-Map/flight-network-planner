@@ -1,5 +1,8 @@
 # Changelog
 
+## v1.2.16-rc.0 (20260516)
+migrate to mise and hk
+
 ## v1.2.15 (20260401)
 revamp ci
 
