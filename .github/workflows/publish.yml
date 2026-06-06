@@ -101,7 +101,7 @@ jobs:
 
     - if: matrix.target == 'x86_64-unknown-linux-musl'
       env:
-        # renovate: datasource=deb depName=musl-tools registryUrl=https://archive.ubuntu.com/ubuntu?suite=noble&components=main,contrib,non-free&binaryArch=amd64
+        # renovate: datasource=deb depName=musl-tools registryUrl=https://archive.ubuntu.com/ubuntu?suite=noble&components=main,multiverse,restricted,universe&binaryArch=amd64
         MUSL_TOOLS_VERSION: 1.2.4-2
       run: |
         sudo apt update
