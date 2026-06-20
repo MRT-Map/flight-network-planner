@@ -24,9 +24,9 @@ pub fn run(
     let possible_flights = config
         .gates
         .iter()
-        .tuple_combinations::<(_, _)>()
+        .array_combinations::<2>()
         .par_bridge()
-        .filter(|(g1, g2)| config.is_valid_flight(fd, g1, g2));
+        .filter(|[g1, g2]| config.is_valid_flight(fd, g1, g2));
 
     let mut h2h_fng = FlightNumberGenerator::new(config.range_h2h.clone());
     let mut h2n_fng = HashMap::new();
@@ -36,7 +36,7 @@ pub fn run(
     let mut flights: Vec<Flight> = vec![];
 
     let sorted_flights = possible_flights
-        .map(|(g1, g2)| {
+        .map(|[g1, g2]| {
             let s = config.gates_score(fd, g1, g2);
             let ty = config.gates_flight_type(fd, g1, g2);
             let existed = old_plan.is_some_and(|old_plan| {
