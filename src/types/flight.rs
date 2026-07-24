@@ -2,7 +2,7 @@ use std::fmt::Display;
 
 use anyhow::{Result, anyhow};
 use itertools::Itertools;
-use regex::Regex;
+use regex::regex;
 
 use crate::types::{AirportCode, FlightNumber, GateCode, Size, flight_type::FlightType};
 
@@ -42,12 +42,11 @@ impl Flight {
             .join("\n")
     }
     pub fn vec_from_str(s: &str) -> Result<Vec<Self>> {
-        let regex = Regex::new(r"(\d+) \((.*)\): (...) (.+) (...) (.+) \((\d+), (.2..)\)")?;
         s.split('\n')
             .filter(|l| !l.is_empty())
             .map(|l| {
                 Some({
-                    let re = regex.captures(l)?;
+                    let re = regex!(r"(\d+) \((.*)\): (...) (.+) (...) (.+) \((\d+), (.2..)\)").captures(l)?;
 
                     Self {
                         number: re.get(1)?.as_str().parse::<u16>().unwrap(),
