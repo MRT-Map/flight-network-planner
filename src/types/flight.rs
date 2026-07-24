@@ -46,7 +46,8 @@ impl Flight {
             .filter(|l| !l.is_empty())
             .map(|l| {
                 Some({
-                    let re = regex!(r"(\d+) \((.*)\): (...) (.+) (...) (.+) \((\d+), (.2..)\)").captures(l)?;
+                    let re = regex!(r"(\d+) \((.*)\): (...) (.+) (...) (.+) \((\d+), (.2..)\)")
+                        .captures(l)?;
 
                     Self {
                         number: re.get(1)?.as_str().parse::<u16>().unwrap(),
