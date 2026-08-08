@@ -97,6 +97,7 @@ preferred_to:
   WCC: [CIA, AIX, MWT, EIA]
   EMI: [PCE, MWT]
   OAI: [WHT]
+  TBK: [MWT, NPR, GBE, VFW] # temp
 no_dupes: [WMA, CAP, DHA, PCE, WCC]
 
 # == Airport restrictions ==
