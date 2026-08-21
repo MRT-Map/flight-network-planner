@@ -32,7 +32,7 @@ regex = "=1.13.1"
 smol_str = { version = "=0.3.6", features = ["serde"] }
 rayon = "=1.12.0"
 
-gatelogue-types = { version = "=3.1.3", features = ["bundled"] }
+gatelogue-types = { version = "=3.1.4", features = ["bundled"] }
 ureq = "=3.4.0"
 counter = "=0.7.1"
 
