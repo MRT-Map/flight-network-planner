@@ -12,7 +12,7 @@ keywords = [
 categories = ["games"]
 homepage = "https://github.com/mrt-map/flight-network-planner"
 repository = "https://github.com/mrt-map/flight-network-planner"
-rust-version = "1.89"
+rust-version = "1.95"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
