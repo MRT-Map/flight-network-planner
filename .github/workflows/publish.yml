@@ -19,7 +19,7 @@ jobs:
       with:
         persist-credentials: false
         submodules: true
-    - uses: ./.github/actions/mise
+    - uses: $/.github/actions/mise
       with:
           cache: false
           envs: ''
@@ -84,7 +84,7 @@ jobs:
       with:
         persist-credentials: false
         submodules: true
-    - uses: ./.github/actions/mise
+    - uses: $/.github/actions/mise
       with:
           cache: false
           envs: ''
@@ -144,7 +144,7 @@ jobs:
         with:
           persist-credentials: false
           submodules: true
-      - uses: ./.github/actions/mise
+      - uses: $/.github/actions/mise
         with:
           cache: false
           envs: ''
@@ -201,7 +201,7 @@ jobs:
         with:
           persist-credentials: false
           submodules: true
-      - uses: ./.github/actions/mise
+      - uses: $/.github/actions/mise
         with:
           cache: false
           envs: ''
