@@ -42,7 +42,7 @@ lto = true
 codegen-units = 1
 
 [lints.rust]
-future-incompatible = "deny"
+future_incompatible = "deny"
 
 [lints.clippy]
 all = "warn"
