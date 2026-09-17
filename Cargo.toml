@@ -33,7 +33,7 @@ smol_str = { version = "=0.3.6", features = ["serde"] }
 rayon = "=1.12.0"
 
 gatelogue-types = { version = "=3.1.4", features = ["bundled"] }
-ureq = "=3.4.1"
+ureq = "=3.4.2"
 counter = "=0.7.1"
 
 [profile.release]
