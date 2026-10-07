@@ -98,7 +98,7 @@ preferred_to:
   EMI: [PCE, MWT]
   OAI: [WHT]
   TBK: [MWT, NPR, GBE, VFW] # temp
-no_dupes: [WMA, CAP, DHA, PCE, WCC]
+no_dupes: [WMA, CAP, DHA, PCE, WCC, EYE]
 
 # == Airport restrictions ==
 # gate_restrictions_allowed: A mapping of airports to a mapping of gates to a list of destinations that are only able to be flown to from the gate.
