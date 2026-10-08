@@ -1,5 +1,5 @@
-name: Setup Rust
-description: "Set up rust nightly"
+name: Mise
+description: Mise
 
 inputs:
   envs:
