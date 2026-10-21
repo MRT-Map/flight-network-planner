@@ -1,5 +1,8 @@
 # Changelog
 
+## v1.2.17 (20261022)
+upgrade dependencies, update for eMudhra
+
 ## v1.2.16 (20261008)
 upgrade dependencies
 
