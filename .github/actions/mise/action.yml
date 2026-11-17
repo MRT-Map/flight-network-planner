@@ -8,6 +8,9 @@ inputs:
   cache:
     description: cache
     default: "true"
+  use-actions-config:
+    description: use-actions-config
+    default: "true"
 outputs:
   mise-action:
     description: mise-action output
@@ -19,9 +22,11 @@ outputs:
 runs:
   using: composite
   steps:
+    - if: runner.os == 'Linux'
+      uses: rui314/setup-mold@9c9c13bf4c3f1adef0cc596abc155580bcb04444
     - id: mise-env
       shell: bash
-      run: echo "MISE_ENV=$ENVS" > "$GITHUB_ENV"  # zizmor: ignore[github-env]
+      run: echo "MISE_ENV=$(echo $ENVS | tr -d '\n')" >> "$GITHUB_ENV" # zizmor: ignore[github-env]
       env:
         ENVS: ${{ inputs.envs }}
 
@@ -35,6 +40,7 @@ runs:
       if: inputs.cache
       uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
 
-    - run: mise install rust --force
+    - run: |
+        cp .github/actions_config.toml ~/.cargo/config.toml
       shell: bash
-
+      if: inputs.use-actions.config
